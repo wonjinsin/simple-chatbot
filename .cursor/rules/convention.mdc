@@ -1,0 +1,338 @@
+You are an expert in Go, microservices architecture, and clean backend development practices. Your role is to ensure code is idiomatic, modular, testable, and aligned with modern best practices and design patterns.
+
+### General Responsibilities:
+
+- Guide the development of idiomatic, maintainable, and high-performance Go code.
+- Enforce modular design and separation of concerns through Clean Architecture.
+- Promote test-driven development, robust observability, and scalable patterns across services.
+
+### Architecture Patterns:
+
+- Apply **Clean Architecture** by structuring code into handlers/controllers, services/use cases, repositories/data access, and domain models.
+- Use **domain-driven design** principles where applicable.
+- Prioritize **interface-driven development** with explicit dependency injection.
+- Prefer **composition over inheritance**; favor small, purpose-specific interfaces.
+- Ensure that all public functions interact with interfaces, not concrete types, to enhance flexibility and testability.
+
+### Project Structure Guidelines:
+
+- Use a consistent project layout:
+  - cmd/: application entrypoints (main.go for each service/command)
+    - server/: HTTP server entrypoint
+    - migrate/: database migration runner
+  - internal/: core application logic (not exposed externally)
+    - config/: configuration loading and management
+    - constants/: application-level constants and error code definitions
+    - domain/: business entities, domain models, and aggregate roots
+    - usecase/: application use cases, business orchestration, and service interfaces
+    - handler/: transport layer handlers (HTTP, gRPC, etc.)
+      - http/: HTTP controllers, middleware, routes, and DTOs
+        - dto/: data transfer objects and response mappers
+        - middleware/: HTTP middleware (CORS, logging, request ID, etc.)
+    - repository/: data access layer with repository interfaces and implementations
+      - repository.go: repository interface definitions
+      - postgres/: PostgreSQL implementation with EntGo
+        - dao/: data access objects (EntGo generated code)
+          - ent/: EntGo generated client and entities
+          - schema/: EntGo schema definitions
+        - user_mapper.go: domain-to-DAO transformation logic
+    - shared/: shared internal utilities
+  - pkg/: reusable packages (can be imported by external projects)
+    - constants/: shared constants (HTTP, validation, context keys)
+    - errors/: custom error system with error codes and wrapping
+    - logger/: structured logging with zerolog (JSON output, TrID integration)
+    - utils/: common utility functions (HTTP, string, ID generation)
+  - migrations/: SQL migration files (go-migrate format)
+  - test/: test utilities, mocks, and integration tests
+  - docker-compose.yml: local development infrastructure (PostgreSQL)
+  - Makefile: common development tasks (infra, migrations, build)
+- Group code by feature when it improves clarity and cohesion.
+- Keep logic decoupled from framework-specific code.
+
+### Layered Architecture (Clean Architecture Pattern):
+
+#### Domain Layer (internal/domain/):
+
+- **Purpose**: Core business entities and domain logic
+- **Responsibilities**:
+  - Define domain models (aggregate roots) with business validation
+  - Implement domain-specific business rules and invariants
+  - Pure business logic without external dependencies
+  - Define custom collection types (e.g., `type Users []*User`)
+- **Dependencies**: None (only pkg/errors, pkg/constants for validation)
+- **Example**: User entity with NewUser constructor, validation logic, and Users collection type
+
+#### Repository Layer (internal/repository/):
+
+- **Purpose**: Data access abstraction and implementations
+- **Responsibilities**:
+  - Define repository interfaces (repository.go)
+  - Implement concrete data access using EntGo or other ORMs
+  - Handle domain-to-DAO transformations (mapper.go)
+  - Manage database connections and transactions
+  - Return domain entities, not database entities
+- **Dependencies**: Domain layer
+- **Example**: UserRepository interface with PostgreSQL implementation using EntGo
+
+#### Use Case Layer (internal/usecase/):
+
+- **Purpose**: Application business logic and orchestration
+- **Responsibilities**:
+  - Define service interfaces (service.go)
+  - Implement application use cases
+  - Orchestrate multiple repositories
+  - Apply application-level business rules
+  - No logging (delegate to handler layer)
+- **Dependencies**: Repository interfaces, domain entities
+- **Example**: UserService implementing CreateUser, GetUser, ListUsers
+
+#### Handler Layer (internal/handler/):
+
+- **Purpose**: External interface adapters (HTTP, gRPC, CLI, etc.)
+- **Responsibilities**:
+  - Handle protocol-specific requests/responses (HTTP controllers)
+  - Transform DTOs to/from domain entities
+  - Implement middleware (CORS, logging, request ID, recovery)
+  - Handle errors and logging at the boundary
+  - Apply input validation and sanitization
+- **Dependencies**: Use case interfaces
+- **Example**: UserController with HTTP handlers, DTO mappers, middleware
+
+### Dependency Flow:
+
+```
+Handler → UseCase → Repository → Domain
+  (HTTP)    (Service)  (Data Access)  (Entity)
+    ↓           ↓           ↓            ↓
+  [Log]    [Orchestrate] [Transform]  [Validate]
+```
+
+### Current Implementation Details:
+
+#### Error Handling System (pkg/errors/):
+
+- **CustomError** struct with code, message, and error wrapping
+- **Error codes** are 4-digit strings starting with '0' (e.g., "0404", "0409")
+- **errors.New(code, message, err)**: Create new error with code
+- **errors.Wrap(err, message, code...)**: Wrap error with context, optional code override
+- **errors.GetCode(err)**: Extract error code from CustomError
+- Errors propagate from Repository → UseCase → Handler
+- Handler determines HTTP status from error code
+
+#### Logging System (pkg/logger/):
+
+- **Zerolog** for structured JSON logging
+- Custom time format: YYYY/MM/DD HH:MM:SS.mmm
+- **TrID (Transaction ID)** included in all logs via context
+- Log levels: Debug (local/dev), Info (production)
+- Logging only at Handler layer, not in UseCase or Repository
+- Functions: LogInfo, LogWarn, LogError, LogDebug
+
+#### Configuration Management (internal/config/):
+
+- **godotenv** for .env.local file loading
+- Environment variables take precedence over file values
+- Required variables (panic if missing): PORT, ENV, DB\_\*
+- Database URL construction with timezone=UTC
+- No default values for mandatory configuration
+
+#### Database Management:
+
+- **EntGo** for ORM and code generation
+- **go-migrate** for SQL migrations (migrations/ directory)
+- **PostgreSQL** as primary database
+- **docker-compose.yml** for local development
+- Schema definitions in internal/repository/postgres/dao/schema/
+- Generated code in internal/repository/postgres/dao/ent/
+
+#### HTTP Response Format:
+
+- **StandardResponse** struct: {trid, code, result}
+- TrID always first field in JSON response
+- Code: 4-digit string (HTTP status or custom error code)
+- WriteStandardJSON helper with optional custom code parameter
+
+### Key Principles:
+
+- **Dependency Inversion**: Higher layers depend on interfaces, not implementations
+- **Single Responsibility**: Each layer has a clear, focused purpose
+- **Separation of Concerns**: Logging and error handling at boundaries only
+- **Testability**: Each layer can be tested in isolation with mocks
+- **Flexibility**: Implementations can be swapped without affecting other layers
+
+### Development Best Practices:
+
+- Write **short, focused functions** with a single responsibility.
+- Use **custom error system** (pkg/errors) with error codes:
+  - Create errors: `errors.New(constants.ErrorCode, "message", underlyingErr)`
+  - Wrap errors: `errors.Wrap(err, "context", optionalCode)`
+  - Extract codes: `errors.GetCode(err)` to determine HTTP status
+  - Error codes must be 4-digit strings starting with '0'
+- Avoid **global state**; use constructor functions to inject dependencies.
+- Leverage **Go's context propagation** for request-scoped values (TrID), deadlines, and cancellations.
+- Use **TrID (Transaction ID)** via context for request tracing:
+  - Generated in middleware: `middleware.TrID()`
+  - Accessed via: `ctx.Value(constants.ContextKeyTrID)`
+  - Included in all logs and responses
+- Use **goroutines safely**; guard shared state with channels or sync primitives.
+- **Defer closing resources** and handle them carefully to avoid leaks.
+- Set **timezone to UTC** globally: `time.Local = time.UTC`
+- **Logging only at handler layer**, not in usecase or repository layers.
+
+### Security and Resilience:
+
+- Apply **input validation and sanitization** rigorously, especially on inputs from external sources.
+- Use secure defaults for **JWT, cookies**, and configuration settings.
+- Isolate sensitive operations with clear **permission boundaries**.
+- Implement **retries, exponential backoff, and timeouts** on all external calls.
+- Use **circuit breakers and rate limiting** for service protection.
+- Consider implementing **distributed rate-limiting** to prevent abuse across services (e.g., using Redis).
+
+### Testing:
+
+- Write **unit tests** using table-driven patterns and parallel execution.
+- **Mock external interfaces** cleanly using generated or handwritten mocks.
+- Separate **fast unit tests** from slower integration and E2E tests.
+- Ensure **test coverage** for every exported function, with behavioral checks.
+- Use tools like 'go test -cover' to ensure adequate test coverage.
+
+### Documentation and Standards:
+
+- Document public functions and packages with **GoDoc-style comments**.
+- Provide concise **READMEs** for services and libraries.
+- Maintain a 'CONTRIBUTING.md' and 'ARCHITECTURE.md' to guide team practices.
+- Enforce naming consistency and formatting with 'go fmt', 'goimports', and 'golangci-lint'.
+
+### Observability and Logging:
+
+- Use **Zerolog** for structured JSON logging with custom time format.
+- All logs must be in **JSON format** for all environments (local, dev, production).
+- Include **TrID (Transaction ID)** in all logs via context for request correlation.
+- Use **custom HTTP logger middleware** to log HTTP requests with TrID.
+- Log format: `{"level":"info","trid":"...","time":"2025/01/01 01:01:01.333","message":"..."}`
+- **Log levels**:
+  - Debug: development/local environments only
+  - Info: successful operations, request/response tracking
+  - Warn: client errors (400, 404, 409), validation failures
+  - Error: server errors (500), unexpected failures
+- **Logging strategy**:
+  - Log at **handler layer only** (controllers, middleware)
+  - Do NOT log in usecase or repository layers
+  - Log request start, success, and all error conditions
+  - Include relevant context (user ID, resource ID) when available
+
+### HTTP Middleware Stack:
+
+1. **TrID()**: Generate and inject transaction ID into context
+2. **CORS()**: Handle cross-origin requests
+3. **RealIP**: Extract real client IP
+4. **HTTPLogger()**: Log HTTP requests with TrID
+5. **Recoverer**: Recover from panics
+
+### DTO Mapping Strategy:
+
+- Keep DTOs separate from domain entities in `internal/handler/http/dto/`
+- Create dedicated mapper files (e.g., `user_mapper.go`) for transformations
+- Mapper functions: `ToUserResponse()`, `ToUserListResponse()`
+- Transform direction: Domain → DTO (never DTO → Domain directly)
+- Controllers parse request DTOs, extract values, pass to usecase
+- Usecase returns domain entities, controllers transform to response DTOs
+
+### Performance:
+
+- Use **benchmarks** to track performance regressions and identify bottlenecks.
+- Minimize **allocations** and avoid premature optimization; profile before tuning.
+- Instrument key areas (DB, external calls, heavy computation) to monitor runtime behavior.
+
+### Concurrency and Goroutines:
+
+- Ensure safe use of **goroutines**, and guard shared state with channels or sync primitives.
+- Implement **goroutine cancellation** using context propagation to avoid leaks and deadlocks.
+
+### Tooling and Dependencies:
+
+- Rely on **stable, minimal third-party libraries**; prefer the standard library where feasible.
+- Use **Go modules** for dependency management and reproducibility.
+- Version-lock dependencies for deterministic builds.
+- Integrate **linting, testing, and security checks** in CI pipelines.
+
+#### Core Dependencies:
+
+- **HTTP Router**: chi (github.com/go-chi/chi/v5) - lightweight, idiomatic HTTP router
+- **ORM**: EntGo (entgo.io/ent) - type-safe, code generation based ORM
+- **Database Driver**: pgx (github.com/jackc/pgx/v5) - PostgreSQL driver
+- **Migrations**: go-migrate (github.com/golang-migrate/migrate/v4) - database migrations
+- **Logging**: zerolog (github.com/rs/zerolog) - structured JSON logging
+- **Configuration**: godotenv (github.com/joho/godotenv) - .env file loading
+
+#### Development Tools:
+
+- **Makefile** for common tasks (infra-up, infra-down, migrate-up, migrate-down)
+- **docker-compose** for local PostgreSQL instance
+- **go-migrate** CLI for migration management
+- **EntGo** code generation: `go generate ./internal/repository/postgres/dao/ent`
+
+### Key Conventions:
+
+1. **Readability and Maintainability**:
+
+   - Prioritize clear, simple, and maintainable code
+   - Use descriptive names for functions, variables, and types
+   - Keep functions short and focused on a single responsibility
+
+2. **Architecture and Dependencies**:
+
+   - Design for change: isolate business logic and minimize framework lock-in
+   - Emphasize clear boundaries and dependency inversion
+   - Dependencies flow: Handler → UseCase → Repository → Domain
+   - Interfaces defined in the layer that uses them
+
+3. **Error Handling**:
+
+   - Always use custom error system with 4-digit error codes
+   - Error codes start with '0' and align with HTTP status codes
+   - Wrap errors as they propagate through layers
+   - Handler layer determines HTTP status from error codes
+   - Examples: "0400" (Bad Request), "0404" (Not Found), "0409" (Conflict), "0500" (Internal Error)
+
+4. **Logging Strategy**:
+
+   - Log ONLY at handler layer (controllers, middleware)
+   - Include TrID in all logs for request tracing
+   - Use appropriate log levels: Debug, Info, Warn, Error
+   - JSON format for all environments
+
+5. **Custom Collection Types**:
+
+   - Always use named slice types instead of inline slice declarations
+   - Define in domain model: `type Users []*User`
+   - Use the named type: `func GetUsers() (Users, error)`
+   - Never use inline: `func GetUsers() ([]*User, error)`
+   - Improves readability and allows future method additions
+
+6. **HTTP Response Format**:
+
+   - All responses use StandardResponse: `{trid, code, result}`
+   - TrID is always the first field in JSON
+   - Code is a 4-digit string (HTTP status or custom error code)
+   - Use WriteStandardJSON helper with optional custom code
+
+7. **Configuration and Environment**:
+
+   - Use .env.local for local development
+   - Environment variables take precedence
+   - No default values for required configuration (fail fast)
+   - Always set timezone to UTC globally
+
+8. **Testing and Quality**:
+
+   - Ensure all behavior is observable, testable, and documented
+   - Write unit tests with table-driven patterns
+   - Mock interfaces for isolation
+   - Automate workflows for testing, building, and deployment
+
+9. **Database and Migrations**:
+   - Use EntGo for ORM with schema definitions
+   - SQL migrations for schema changes (go-migrate)
+   - Always include timezone=UTC in database connections
+   - Domain-to-DAO mapping in dedicated mapper files
