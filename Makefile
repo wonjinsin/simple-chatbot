@@ -1,4 +1,4 @@
-PACKAGE = github.com/wonjinsin/go-boilerplate
+PACKAGE = github.com/wonjinsin/simple-chatbot
 CUSTOM_OS = ${GOOS}
 BASE_PATH = $(shell pwd)
 BIN = $(BASE_PATH)/bin

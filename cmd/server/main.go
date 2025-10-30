@@ -11,11 +11,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/wonjinsin/go-boilerplate/internal/config"
-	httpHandler "github.com/wonjinsin/go-boilerplate/internal/handler/http"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres"
-	"github.com/wonjinsin/go-boilerplate/internal/usecase"
-	"github.com/wonjinsin/go-boilerplate/pkg/logger"
+	"github.com/wonjinsin/simple-chatbot/internal/config"
+	"github.com/wonjinsin/simple-chatbot/internal/database"
+	httpHandler "github.com/wonjinsin/simple-chatbot/internal/handler/http"
+	langchain "github.com/wonjinsin/simple-chatbot/internal/repository/langchain/ollama"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres"
+	"github.com/wonjinsin/simple-chatbot/internal/usecase"
+	"github.com/wonjinsin/simple-chatbot/pkg/logger"
 )
 
 func main() {
@@ -31,31 +33,33 @@ func main() {
 	// Initialize logger
 	logger.Initialize(cfg.Env)
 
+	// Initialize LLM
+	ollamaLLM, err := database.NewOllamaLLM()
+	if err != nil {
+		log.Fatalf("failed to initialize LLM: %v", err)
+	}
+
 	// Initialize database connection
 	userRepo, err := postgres.NewUserRepository(cfg)
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
-	defer func() {
-		if closer, ok := userRepo.(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				log.Printf("failed to close database: %v", err)
-			}
-		}
-	}()
+	basicChatRepo := langchain.NewBasicChatRepo(ollamaLLM)
 
 	// Wiring (Composition Root)
-	var userSvc usecase.UserService = usecase.NewUserService(userRepo)
+	userSvc := usecase.NewUserService(userRepo)
+	basicChatSvc := usecase.NewBasicChatService(basicChatRepo)
 
 	// Create chi router
-	router := httpHandler.NewRouter(userSvc)
+	router := httpHandler.NewRouter(userSvc, basicChatSvc)
+	handler := http.TimeoutHandler(router, 59*time.Second, "Timeout")
 
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%s", cfg.Port),
-		Handler:           router,
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
+		WriteTimeout:      60 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
 

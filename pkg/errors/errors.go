@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	pkgConstants "github.com/wonjinsin/go-boilerplate/internal/constants"
+	pkgConstants "github.com/wonjinsin/simple-chatbot/internal/constants"
 )
 
 // CustomError represents an error with a 4-digit code

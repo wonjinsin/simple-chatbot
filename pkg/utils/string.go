@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/wonjinsin/go-boilerplate/pkg/constants"
+	"github.com/wonjinsin/simple-chatbot/pkg/constants"
 )
 
 var emailRegex = regexp.MustCompile(constants.EmailPattern)

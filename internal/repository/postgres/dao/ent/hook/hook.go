@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent"
 )
 
 // The UserFunc type is an adapter to allow the use of ordinary

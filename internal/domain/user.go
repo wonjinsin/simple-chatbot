@@ -3,10 +3,10 @@ package domain
 import (
 	"time"
 
-	"github.com/wonjinsin/go-boilerplate/internal/constants"
-	pkgConstants "github.com/wonjinsin/go-boilerplate/pkg/constants"
-	"github.com/wonjinsin/go-boilerplate/pkg/errors"
-	"github.com/wonjinsin/go-boilerplate/pkg/utils"
+	"github.com/wonjinsin/simple-chatbot/internal/constants"
+	pkgConstants "github.com/wonjinsin/simple-chatbot/pkg/constants"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
+	"github.com/wonjinsin/simple-chatbot/pkg/utils"
 )
 
 // User is an aggregate root.

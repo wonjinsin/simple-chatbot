@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/wonjinsin/go-boilerplate/pkg/constants"
+	"github.com/wonjinsin/simple-chatbot/pkg/constants"
 )
 
 // ParsePagination extracts pagination parameters from HTTP request

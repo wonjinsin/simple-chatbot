@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent"
 	// required by schema hooks.
-	_ "github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/runtime"
+	_ "github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/migrate"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/migrate"
 )
 
 type (

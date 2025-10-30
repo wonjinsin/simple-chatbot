@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	domain "github.com/wonjinsin/go-boilerplate/internal/domain"
+	domain "github.com/wonjinsin/simple-chatbot/internal/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -84,4 +84,43 @@ func (m *MockUserService) ListUsers(ctx context.Context, offset, limit int) (dom
 func (mr *MockUserServiceMockRecorder) ListUsers(ctx, offset, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockUserService)(nil).ListUsers), ctx, offset, limit)
+}
+
+// MockBasicChatService is a mock of BasicChatService interface.
+type MockBasicChatService struct {
+	ctrl     *gomock.Controller
+	recorder *MockBasicChatServiceMockRecorder
+	isgomock struct{}
+}
+
+// MockBasicChatServiceMockRecorder is the mock recorder for MockBasicChatService.
+type MockBasicChatServiceMockRecorder struct {
+	mock *MockBasicChatService
+}
+
+// NewMockBasicChatService creates a new mock instance.
+func NewMockBasicChatService(ctrl *gomock.Controller) *MockBasicChatService {
+	mock := &MockBasicChatService{ctrl: ctrl}
+	mock.recorder = &MockBasicChatServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockBasicChatService) EXPECT() *MockBasicChatServiceMockRecorder {
+	return m.recorder
+}
+
+// Ask mocks base method.
+func (m *MockBasicChatService) Ask(ctx context.Context, msg string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ask", ctx, msg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Ask indicates an expected call of Ask.
+func (mr *MockBasicChatServiceMockRecorder) Ask(ctx, msg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ask", reflect.TypeOf((*MockBasicChatService)(nil).Ask), ctx, msg)
 }

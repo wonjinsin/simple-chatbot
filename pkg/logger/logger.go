@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/wonjinsin/go-boilerplate/pkg/constants"
+	"github.com/wonjinsin/simple-chatbot/pkg/constants"
 )
 
 // Initialize sets up the global logger

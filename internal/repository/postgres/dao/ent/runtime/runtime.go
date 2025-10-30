@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/runtime.go
+// The schema-stitching logic is generated in github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/runtime.go
 
 const (
 	Version = "v0.14.5"                                         // Version of ent codegen.

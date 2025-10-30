@@ -11,8 +11,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/predicate"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/user"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/predicate"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/user"
 )
 
 const (

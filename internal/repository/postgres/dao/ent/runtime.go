@@ -5,8 +5,8 @@ package ent
 import (
 	"time"
 
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/user"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/schema"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/user"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/schema"
 )
 
 // The init function reads all schema descriptors with runtime code

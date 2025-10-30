@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/wonjinsin/go-boilerplate/internal/constants"
-	"github.com/wonjinsin/go-boilerplate/internal/domain"
-	"github.com/wonjinsin/go-boilerplate/internal/repository"
-	"github.com/wonjinsin/go-boilerplate/pkg/errors"
+	"github.com/wonjinsin/simple-chatbot/internal/constants"
+	"github.com/wonjinsin/simple-chatbot/internal/domain"
+	"github.com/wonjinsin/simple-chatbot/internal/repository"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 )
 
 type userService struct {

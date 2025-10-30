@@ -9,12 +9,12 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/migrate"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/user"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/user"
 )
 
 // Client is the client that holds all ent builders.

@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/predicate"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/user"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/predicate"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/user"
 )
 
 // UserUpdate is the builder for updating User entities.

@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/wonjinsin/go-boilerplate/internal/domain"
+import "github.com/wonjinsin/simple-chatbot/internal/domain"
 
 // ToUserResponse converts domain.User to UserResponse
 func ToUserResponse(user *domain.User) UserResponse {

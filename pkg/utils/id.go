@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/wonjinsin/go-boilerplate/pkg/constants"
+	"github.com/wonjinsin/simple-chatbot/pkg/constants"
 )
 
 // GenerateID generates a unique ID using timestamp and counter

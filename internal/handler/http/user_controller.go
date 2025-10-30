@@ -6,12 +6,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/wonjinsin/go-boilerplate/internal/constants"
-	"github.com/wonjinsin/go-boilerplate/internal/handler/http/dto"
-	"github.com/wonjinsin/go-boilerplate/internal/usecase"
-	"github.com/wonjinsin/go-boilerplate/pkg/errors"
-	"github.com/wonjinsin/go-boilerplate/pkg/logger"
-	"github.com/wonjinsin/go-boilerplate/pkg/utils"
+	"github.com/wonjinsin/simple-chatbot/internal/constants"
+	"github.com/wonjinsin/simple-chatbot/internal/handler/http/dto"
+	"github.com/wonjinsin/simple-chatbot/internal/usecase"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
+	"github.com/wonjinsin/simple-chatbot/pkg/logger"
+	"github.com/wonjinsin/simple-chatbot/pkg/utils"
 )
 
 // UserController handles user-related HTTP requests

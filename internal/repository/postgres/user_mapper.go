@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"github.com/wonjinsin/go-boilerplate/internal/domain"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent"
+	"github.com/wonjinsin/simple-chatbot/internal/domain"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent"
 )
 
 // toDomainUser converts ent.User to domain.User

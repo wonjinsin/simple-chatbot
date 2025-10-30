@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/wonjinsin/go-boilerplate/pkg/constants"
+	"github.com/wonjinsin/simple-chatbot/pkg/constants"
 )
 
 // TrID returns a middleware that generates transaction IDs

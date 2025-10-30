@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/wonjinsin/go-boilerplate/pkg/utils"
+	"github.com/wonjinsin/simple-chatbot/pkg/utils"
 )
 
 // HealthController handles health check endpoints

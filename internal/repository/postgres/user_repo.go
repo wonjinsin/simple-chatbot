@@ -9,13 +9,13 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"github.com/wonjinsin/go-boilerplate/internal/config"
-	"github.com/wonjinsin/go-boilerplate/internal/constants"
-	"github.com/wonjinsin/go-boilerplate/internal/domain"
-	"github.com/wonjinsin/go-boilerplate/internal/repository"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/user"
-	"github.com/wonjinsin/go-boilerplate/pkg/errors"
+	"github.com/wonjinsin/simple-chatbot/internal/config"
+	"github.com/wonjinsin/simple-chatbot/internal/constants"
+	"github.com/wonjinsin/simple-chatbot/internal/domain"
+	"github.com/wonjinsin/simple-chatbot/internal/repository"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/user"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 )
 
 type userRepo struct {

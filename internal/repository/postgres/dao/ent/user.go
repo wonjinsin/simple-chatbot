@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/user"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/user"
 )
 
 // User is the model entity for the User schema.

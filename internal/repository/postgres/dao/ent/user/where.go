@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/wonjinsin/go-boilerplate/internal/repository/postgres/dao/ent/predicate"
+	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

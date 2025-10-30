@@ -1,0 +1,24 @@
+package usecase
+
+import (
+	"context"
+
+	"github.com/wonjinsin/simple-chatbot/internal/repository"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
+)
+
+type basicChatService struct {
+	repo repository.BasicChatRepository
+}
+
+func NewBasicChatService(r repository.BasicChatRepository) BasicChatService {
+	return &basicChatService{repo: r}
+}
+
+func (s *basicChatService) Ask(ctx context.Context, msg string) (string, error) {
+	answer, err := s.repo.Ask(ctx, msg)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to ask")
+	}
+	return answer, nil
+}
