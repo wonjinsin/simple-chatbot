@@ -24,7 +24,7 @@ func (s *basicChatService) AskBasicChat(ctx context.Context, msg string) (string
 }
 
 func (s *basicChatService) AskBasicPromptTemplateChat(ctx context.Context, msg string) (string, error) {
-	answer, err := s.repo.AskBasicPromptTemplateChat(ctx, msg)
+	answer, err := s.repo.AskWithTool(ctx, msg)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to ask")
 	}

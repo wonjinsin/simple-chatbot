@@ -18,4 +18,7 @@ type UserRepository interface {
 type BasicChatRepository interface {
 	AskBasicChat(ctx context.Context, msg string) (string, error)
 	AskBasicPromptTemplateChat(ctx context.Context, msg string) (string, error)
+	AskBasicParallelChat(ctx context.Context, msg string) (string, error)
+	AskBasicBranchChat(ctx context.Context, msg string) (string, error)
+	AskWithTool(ctx context.Context, msg string) (string, error)
 }

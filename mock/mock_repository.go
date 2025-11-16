@@ -124,6 +124,21 @@ func (m *MockBasicChatRepository) EXPECT() *MockBasicChatRepositoryMockRecorder 
 	return m.recorder
 }
 
+// AskBasicBranchChat mocks base method.
+func (m *MockBasicChatRepository) AskBasicBranchChat(ctx context.Context, msg string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AskBasicBranchChat", ctx, msg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AskBasicBranchChat indicates an expected call of AskBasicBranchChat.
+func (mr *MockBasicChatRepositoryMockRecorder) AskBasicBranchChat(ctx, msg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AskBasicBranchChat", reflect.TypeOf((*MockBasicChatRepository)(nil).AskBasicBranchChat), ctx, msg)
+}
+
 // AskBasicChat mocks base method.
 func (m *MockBasicChatRepository) AskBasicChat(ctx context.Context, msg string) (string, error) {
 	m.ctrl.T.Helper()
@@ -139,6 +154,21 @@ func (mr *MockBasicChatRepositoryMockRecorder) AskBasicChat(ctx, msg any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AskBasicChat", reflect.TypeOf((*MockBasicChatRepository)(nil).AskBasicChat), ctx, msg)
 }
 
+// AskBasicParallelChat mocks base method.
+func (m *MockBasicChatRepository) AskBasicParallelChat(ctx context.Context, msg string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AskBasicParallelChat", ctx, msg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AskBasicParallelChat indicates an expected call of AskBasicParallelChat.
+func (mr *MockBasicChatRepositoryMockRecorder) AskBasicParallelChat(ctx, msg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AskBasicParallelChat", reflect.TypeOf((*MockBasicChatRepository)(nil).AskBasicParallelChat), ctx, msg)
+}
+
 // AskBasicPromptTemplateChat mocks base method.
 func (m *MockBasicChatRepository) AskBasicPromptTemplateChat(ctx context.Context, msg string) (string, error) {
 	m.ctrl.T.Helper()
@@ -152,4 +182,19 @@ func (m *MockBasicChatRepository) AskBasicPromptTemplateChat(ctx context.Context
 func (mr *MockBasicChatRepositoryMockRecorder) AskBasicPromptTemplateChat(ctx, msg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AskBasicPromptTemplateChat", reflect.TypeOf((*MockBasicChatRepository)(nil).AskBasicPromptTemplateChat), ctx, msg)
+}
+
+// AskWithTool mocks base method.
+func (m *MockBasicChatRepository) AskWithTool(ctx context.Context, msg string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AskWithTool", ctx, msg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AskWithTool indicates an expected call of AskWithTool.
+func (mr *MockBasicChatRepositoryMockRecorder) AskWithTool(ctx, msg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AskWithTool", reflect.TypeOf((*MockBasicChatRepository)(nil).AskWithTool), ctx, msg)
 }
