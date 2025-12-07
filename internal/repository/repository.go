@@ -21,4 +21,5 @@ type BasicChatRepository interface {
 	AskBasicParallelChat(ctx context.Context, msg string) (string, error)
 	AskBasicBranchChat(ctx context.Context, msg string) (string, error)
 	AskWithTool(ctx context.Context, msg string) (string, error)
+	AskWithGraph(ctx context.Context, msg string) (string, error)
 }

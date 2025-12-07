@@ -3,6 +3,7 @@ package langchain
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/components/tool"
+	"github.com/cloudwego/eino/components/tool/utils"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
 	"github.com/wonjinsin/simple-chatbot/internal/repository"
@@ -326,6 +328,107 @@ func (r *basicChatRepo) AskWithTool(ctx context.Context, _ string) (string, erro
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to invoke chain")
+	}
+
+	return result.Content, nil
+}
+
+func (r *basicChatRepo) AskWithToolAndSummary(ctx context.Context, _ string) (string, error) {
+	echoFunc := func(ctx context.Context, input map[string]any) (map[string]any, error) {
+		return map[string]any{"echo": input["text"]}, nil
+	}
+	echoTool, err := utils.InferTool(
+		"echo",
+		"echo back given text",
+		echoFunc,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tools := []tool.BaseTool{echoTool}
+	toolInfos := make([]*schema.ToolInfo, 0, len(tools))
+	for _, t := range tools {
+		info, err := t.Info(ctx)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to get tool info")
+		}
+		toolInfos = append(toolInfos, info)
+	}
+	chatModel, err := r.ollamaLLM.WithTools(toolInfos)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create llm with tools")
+	}
+
+	toolsNode, err := compose.NewToolNode(ctx, &compose.ToolsNodeConfig{
+		Tools: tools,
+	})
+	if err != nil {
+		return "", errors.Wrap(err, "failed to create tools node")
+	}
+
+	chain := compose.NewChain[[]*schema.Message, []*schema.Message]()
+	chain.
+		AppendChatModel(chatModel, compose.WithNodeName("chat")).
+		AppendToolsNode(toolsNode, compose.WithNodeName("tools"))
+
+	agent, err := chain.Compile(ctx)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to compile chain")
+	}
+
+	resp, err := agent.Invoke(ctx, []*schema.Message{
+		{
+			Role:    schema.User,
+			Content: "echo tool을 써서 `안녕하세요` 라고 출력해줘",
+		},
+	})
+	if err != nil {
+		return "", errors.Wrap(err, "failed to invoke chain")
+	}
+
+	for _, m := range resp {
+		fmt.Println(m.Role, ":", m.Content)
+	}
+
+	return resp[0].Content, nil
+}
+
+func (r *basicChatRepo) AskWithGraph(ctx context.Context, _ string) (string, error) {
+	greeting := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+		kvs["greeting"] = fmt.Sprintf("Hello, %s!", kvs["name"])
+		return kvs, nil
+	})
+
+	process := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (*schema.Message, error) {
+		return &schema.Message{
+			Role:    schema.Assistant,
+			Content: fmt.Sprintf("Processed: %s", kvs["greeting"]),
+		}, nil
+	})
+
+	var (
+		greetingNode string = "greeting"
+		processNode         = "process"
+	)
+
+	g := compose.NewGraph[map[string]any, *schema.Message]()
+	g.AddLambdaNode(greetingNode, greeting)
+	g.AddLambdaNode(processNode, process)
+	g.AddEdge(compose.START, greetingNode)
+	g.AddEdge(greetingNode, processNode)
+	g.AddEdge(processNode, compose.END)
+
+	res, err := g.Compile(ctx)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to compile graph")
+	}
+
+	result, err := res.Invoke(ctx, map[string]any{
+		"name": "WonjinSin",
+	})
+	if err != nil {
+		return "", errors.Wrap(err, "failed to invoke graph")
 	}
 
 	return result.Content, nil
