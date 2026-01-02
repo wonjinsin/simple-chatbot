@@ -24,3 +24,8 @@ type BasicChatRepository interface {
 	AskWithGraph(ctx context.Context, msg string) (string, error)
 	AskWithGraphWithBranch(ctx context.Context, _ string) (string, error)
 }
+
+// InquiryRepository defines the interface for inquiry data access
+type InquiryRepository interface {
+	EmbedStrings(ctx context.Context, texts []string) ([][]float64, error)
+}

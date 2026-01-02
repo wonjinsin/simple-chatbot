@@ -184,6 +184,36 @@ func (mr *MockBasicChatRepositoryMockRecorder) AskBasicPromptTemplateChat(ctx, m
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AskBasicPromptTemplateChat", reflect.TypeOf((*MockBasicChatRepository)(nil).AskBasicPromptTemplateChat), ctx, msg)
 }
 
+// AskWithGraph mocks base method.
+func (m *MockBasicChatRepository) AskWithGraph(ctx context.Context, msg string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AskWithGraph", ctx, msg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AskWithGraph indicates an expected call of AskWithGraph.
+func (mr *MockBasicChatRepositoryMockRecorder) AskWithGraph(ctx, msg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AskWithGraph", reflect.TypeOf((*MockBasicChatRepository)(nil).AskWithGraph), ctx, msg)
+}
+
+// AskWithGraphWithBranch mocks base method.
+func (m *MockBasicChatRepository) AskWithGraphWithBranch(ctx context.Context, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AskWithGraphWithBranch", ctx, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AskWithGraphWithBranch indicates an expected call of AskWithGraphWithBranch.
+func (mr *MockBasicChatRepositoryMockRecorder) AskWithGraphWithBranch(ctx, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AskWithGraphWithBranch", reflect.TypeOf((*MockBasicChatRepository)(nil).AskWithGraphWithBranch), ctx, arg1)
+}
+
 // AskWithTool mocks base method.
 func (m *MockBasicChatRepository) AskWithTool(ctx context.Context, msg string) (string, error) {
 	m.ctrl.T.Helper()
