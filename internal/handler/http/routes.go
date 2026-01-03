@@ -12,6 +12,7 @@ import (
 func NewRouter(
 	userSvc usecase.UserService,
 	basicChatSvc usecase.BasicChatService,
+	inquirySvc usecase.InquiryService,
 ) *chi.Mux {
 	r := chi.NewRouter()
 
@@ -26,6 +27,7 @@ func NewRouter(
 	healthCtrl := NewHealthController()
 	userCtrl := NewUserController(userSvc)
 	basicChatCtrl := NewBasicChatController(basicChatSvc)
+	inquiryCtrl := NewInquiryController(inquirySvc)
 
 	// Routes
 	r.Get("/healthz", healthCtrl.Check)
@@ -35,6 +37,11 @@ func NewRouter(
 		r.Post("/", userCtrl.CreateUser)
 		r.Get("/", userCtrl.ListUsers)
 		r.Get("/{id}", userCtrl.GetUser)
+	})
+
+	// Inquiry routes
+	r.Route("/inquiry", func(r chi.Router) {
+		r.Post("/embed/origins", inquiryCtrl.EmbedInquiryOrigins)
 	})
 
 	// Basic chat routes

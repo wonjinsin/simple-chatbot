@@ -49,9 +49,10 @@ func main() {
 	// Wiring (Composition Root)
 	userSvc := usecase.NewUserService(userRepo)
 	basicChatSvc := usecase.NewBasicChatService(basicChatRepo)
+	inquirySvc := usecase.NewInquiryService()
 
 	// Create chi router
-	router := httpHandler.NewRouter(userSvc, basicChatSvc)
+	router := httpHandler.NewRouter(userSvc, basicChatSvc, inquirySvc)
 	handler := http.TimeoutHandler(router, 59*time.Second, "Timeout")
 
 	srv := &http.Server{

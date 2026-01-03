@@ -18,3 +18,8 @@ type BasicChatService interface {
 	AskBasicChat(ctx context.Context, msg string) (string, error)
 	AskBasicPromptTemplateChat(ctx context.Context, msg string) (string, error)
 }
+
+// InquiryService defines the interface for inquiry business logic
+type InquiryService interface {
+	EmbedInquiryOrigins(ctx context.Context) error
+}
