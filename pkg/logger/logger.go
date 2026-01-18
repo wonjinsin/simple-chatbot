@@ -19,7 +19,8 @@ func Initialize(env string) {
 
 	// Configure caller marshalling to include short file:line and function name
 	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
-		// Prefer repo-relative path if possible (e.g., "internal/handler/http/basic_chat_controller.go")
+		// Prefer repo-relative path if possible (e.g.,
+		// "internal/handler/http/basic_chat_controller.go")
 		short := file
 		if i := strings.Index(file, "/simple-chatbot/"); i >= 0 {
 			short = file[i+len("/simple-chatbot/"):]

@@ -64,9 +64,10 @@ func (p *cleanMarkdownJSONParser[T]) cleanMarkdown(content string) string {
 	if startIdx != -1 {
 		braceCount := 0
 		for i := startIdx; i < len(content); i++ {
-			if content[i] == '{' {
+			switch content[i] {
+			case '{':
 				braceCount++
-			} else if content[i] == '}' {
+			case '}':
 				braceCount--
 				if braceCount == 0 {
 					return strings.TrimSpace(content[startIdx : i+1])
@@ -122,14 +123,18 @@ func (r *basicChatRepo) AskBasicPromptTemplateChat(ctx context.Context, _ string
 	// Create a prompt template
 	template := prompt.FromMessages(
 		schema.GoTemplate,
-		schema.SystemMessage("You are a JSON-only response assistant. You MUST respond with ONLY valid JSON. The response must be a single JSON object with an 'answer' field containing a plain string value. Do NOT use markdown code blocks, backticks, or any formatting. Do NOT nest JSON objects. Return ONLY the raw JSON object."),
+		schema.SystemMessage(
+			"You are a JSON-only response assistant. You MUST respond with ONLY valid JSON. The response must be a single JSON object with an 'answer' field containing a plain string value. Do NOT use markdown code blocks, backticks, or any formatting. Do NOT nest JSON objects. Return ONLY the raw JSON object.",
+		),
 		schema.UserMessage(
 			`Generate a report for {{.user}} on {{.date}}. 
 			Return your response as a JSON object with this exact structure: {"answer": "your report text here"}. 
 			The answer field must contain a plain string, not nested JSON. 
 			Example: {"answer": "John Doe report for Google on 2026-01-01"}`,
 		),
-		schema.UserMessage("Please explain this person's report. Name the person as {{.user}}. He started working at {{.company}} on {{.date}}."),
+		schema.UserMessage(
+			"Please explain this person's report. Name the person as {{.user}}. He started working at {{.company}} on {{.date}}.",
+		),
 	)
 
 	// Render the template with data
@@ -169,14 +174,18 @@ func (r *basicChatRepo) AskBasicParallelChat(ctx context.Context, _ string) (str
 	// Create a prompt template
 	template := prompt.FromMessages(
 		schema.GoTemplate,
-		schema.SystemMessage("You are a JSON-only response assistant. You MUST respond with ONLY valid JSON. The response must be a single JSON object with an 'answer' field containing a plain string value. Do NOT use markdown code blocks, backticks, or any formatting. Do NOT nest JSON objects. Return ONLY the raw JSON object."),
+		schema.SystemMessage(
+			"You are a JSON-only response assistant. You MUST respond with ONLY valid JSON. The response must be a single JSON object with an 'answer' field containing a plain string value. Do NOT use markdown code blocks, backticks, or any formatting. Do NOT nest JSON objects. Return ONLY the raw JSON object.",
+		),
 		schema.UserMessage(
 			`Generate a report for {{.user}} on {{.date}}. 
 			Return your response as a JSON object with this exact structure: {"answer": "your report text here"}. 
 			The answer field must contain a plain string, not nested JSON. 
 			Example: {"answer": "John Doe report for Google on 2026-01-01"}`,
 		),
-		schema.UserMessage("Please explain this person's report. Name the person as {{.user}}. He started working at {{.company}} on {{.date}}."),
+		schema.UserMessage(
+			"Please explain this person's report. Name the person as {{.user}}. He started working at {{.company}} on {{.date}}.",
+		),
 	)
 
 	// Render the template with data
@@ -199,15 +208,19 @@ func (r *basicChatRepo) AskBasicParallelChat(ctx context.Context, _ string) (str
 		AppendChatModel(r.ollamaLLM).
 		AppendLambda(jsonParserLambda)
 
-	lengthLambda := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (int, error) {
-		w, _ := kvs["user"].(string)
-		return utf8.RuneCountInString(w), nil
-	})
+	lengthLambda := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (int, error) {
+			w, _ := kvs["user"].(string)
+			return utf8.RuneCountInString(w), nil
+		},
+	)
 
-	upperLambda := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (string, error) {
-		w, _ := kvs["user"].(string)
-		return strings.ToUpper(w), nil
-	})
+	upperLambda := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (string, error) {
+			w, _ := kvs["user"].(string)
+			return strings.ToUpper(w), nil
+		},
+	)
 
 	finalChain, err := compose.NewChain[map[string]any, map[string]any]().
 		AppendParallel(
@@ -236,15 +249,19 @@ func (r *basicChatRepo) AskBasicBranchChat(ctx context.Context, _ string) (strin
 		schema.UserMessage("Please character description of {{.role}}."),
 	)
 
-	dog := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
-		kvs["role"] = "dog"
-		return kvs, nil
-	})
+	dog := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+			kvs["role"] = "dog"
+			return kvs, nil
+		},
+	)
 
-	cat := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
-		kvs["role"] = "cat"
-		return kvs, nil
-	})
+	cat := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+			kvs["role"] = "cat"
+			return kvs, nil
+		},
+	)
 
 	roleCond := func(ctx context.Context, kvs map[string]any) (string, error) {
 		if kvs["word"] == "a" {
@@ -309,8 +326,12 @@ func (r *basicChatRepo) AskWithTool(ctx context.Context, _ string) (string, erro
 
 	initialPrompt := prompt.FromMessages(
 		schema.GoTemplate,
-		schema.SystemMessage("You are a helpful assistant that can search the web. When you need information, use the search tool."),
-		schema.UserMessage("Please search for information about {{.query}} and summarize the results in 2-3 sentences."),
+		schema.SystemMessage(
+			"You are a helpful assistant that can search the web. When you need information, use the search tool.",
+		),
+		schema.UserMessage(
+			"Please search for information about {{.query}} and summarize the results in 2-3 sentences.",
+		),
 	)
 
 	chain, err := compose.NewChain[map[string]any, *schema.Message]().
@@ -395,21 +416,25 @@ func (r *basicChatRepo) AskWithToolAndSummary(ctx context.Context, _ string) (st
 }
 
 func (r *basicChatRepo) AskWithGraph(ctx context.Context, _ string) (string, error) {
-	greeting := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
-		kvs["greeting"] = fmt.Sprintf("Hello, %s!", kvs["name"])
-		return kvs, nil
-	})
+	greeting := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+			kvs["greeting"] = fmt.Sprintf("Hello, %s!", kvs["name"])
+			return kvs, nil
+		},
+	)
 
-	process := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (*schema.Message, error) {
-		return &schema.Message{
-			Role:    schema.Assistant,
-			Content: fmt.Sprintf("Processed: %s", kvs["greeting"]),
-		}, nil
-	})
+	process := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (*schema.Message, error) {
+			return &schema.Message{
+				Role:    schema.Assistant,
+				Content: fmt.Sprintf("Processed: %s", kvs["greeting"]),
+			}, nil
+		},
+	)
 
 	var (
-		greetingNode string = "greeting"
-		processNode         = "process"
+		greetingNode = "greeting"
+		processNode  = "process"
 	)
 
 	g := compose.NewGraph[map[string]any, *schema.Message]()
@@ -452,20 +477,26 @@ func (r *basicChatRepo) AskWithGraphWithBranch(ctx context.Context, _ string) (s
 		return emotion, nil
 	}
 
-	positive := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
-		kvs["response"] = "The user is feeling positive."
-		return kvs, nil
-	})
+	positive := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+			kvs["response"] = "The user is feeling positive."
+			return kvs, nil
+		},
+	)
 
-	negative := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
-		kvs["response"] = "The user is feeling negative."
-		return kvs, nil
-	})
+	negative := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+			kvs["response"] = "The user is feeling negative."
+			return kvs, nil
+		},
+	)
 
-	neutral := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
-		kvs["response"] = "The user is feeling neutral."
-		return kvs, nil
-	})
+	neutral := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+			kvs["response"] = "The user is feeling neutral."
+			return kvs, nil
+		},
+	)
 
 	const (
 		nodeOfPrompt    = "prompt"
@@ -477,20 +508,24 @@ func (r *basicChatRepo) AskWithGraphWithBranch(ctx context.Context, _ string) (s
 		nodeOfFinalizer = "finalizer"
 	)
 
-	emotionParser := compose.InvokableLambda(func(ctx context.Context, msg *schema.Message) (map[string]any, error) {
-		emotion := strings.ToLower(strings.TrimSpace(msg.Content))
-		return map[string]any{
-			"emotion": emotion,
-		}, nil
-	})
+	emotionParser := compose.InvokableLambda(
+		func(ctx context.Context, msg *schema.Message) (map[string]any, error) {
+			emotion := strings.ToLower(strings.TrimSpace(msg.Content))
+			return map[string]any{
+				"emotion": emotion,
+			}, nil
+		},
+	)
 
-	finalizer := compose.InvokableLambda(func(ctx context.Context, kvs map[string]any) (*schema.Message, error) {
-		response, _ := kvs["response"].(string)
-		return &schema.Message{
-			Role:    schema.Assistant,
-			Content: response,
-		}, nil
-	})
+	finalizer := compose.InvokableLambda(
+		func(ctx context.Context, kvs map[string]any) (*schema.Message, error) {
+			response, _ := kvs["response"].(string)
+			return &schema.Message{
+				Role:    schema.Assistant,
+				Content: response,
+			}, nil
+		},
+	)
 
 	g := compose.NewGraph[map[string]any, *schema.Message]()
 

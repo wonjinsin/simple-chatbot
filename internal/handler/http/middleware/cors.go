@@ -59,15 +59,24 @@ func CORS(config ...CORSConfig) func(http.Handler) http.Handler {
 			}
 
 			if len(cfg.AllowedMethods) > 0 {
-				w.Header().Set("Access-Control-Allow-Methods", joinStrings(cfg.AllowedMethods, ", "))
+				w.Header().Set(
+					"Access-Control-Allow-Methods",
+					joinStrings(cfg.AllowedMethods, ", "),
+				)
 			}
 
 			if len(cfg.AllowedHeaders) > 0 {
-				w.Header().Set("Access-Control-Allow-Headers", joinStrings(cfg.AllowedHeaders, ", "))
+				w.Header().Set(
+					"Access-Control-Allow-Headers",
+					joinStrings(cfg.AllowedHeaders, ", "),
+				)
 			}
 
 			if len(cfg.ExposedHeaders) > 0 {
-				w.Header().Set("Access-Control-Expose-Headers", joinStrings(cfg.ExposedHeaders, ", "))
+				w.Header().Set(
+					"Access-Control-Expose-Headers",
+					joinStrings(cfg.ExposedHeaders, ", "),
+				)
 			}
 
 			if cfg.MaxAge > 0 {

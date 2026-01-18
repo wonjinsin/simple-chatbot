@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -30,7 +31,9 @@ func main() {
 	dbSSLMode := os.Getenv("DB_SSLMODE")
 
 	if dbHost == "" || dbPort == "" || dbUser == "" || dbPassword == "" || dbName == "" {
-		log.Fatal("Required database environment variables are not set (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)")
+		log.Fatal(
+			"Required database environment variables are not set (DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)",
+		)
 	}
 
 	if dbSSLMode == "" {
@@ -60,13 +63,13 @@ func main() {
 
 	switch command {
 	case "up":
-		if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 			log.Fatalf("Migration up failed: %v", err)
 		}
 		log.Println("Migration up completed successfully")
 
 	case "down":
-		if err := m.Down(); err != nil && err != migrate.ErrNoChange {
+		if err := m.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 			log.Fatalf("Migration down failed: %v", err)
 		}
 		log.Println("Migration down completed successfully")

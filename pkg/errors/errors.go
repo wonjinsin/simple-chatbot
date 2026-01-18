@@ -32,7 +32,8 @@ func New(code pkgConstants.ErrorCode, message string, err error) *CustomError {
 }
 
 // Wrap wraps an existing error with context.
-// Accepts an optional error code. If provided, uses that code; otherwise preserves existing code or uses InternalError.
+// Accepts an optional error code. If provided, uses that code; otherwise preserves existing code or
+// uses InternalError.
 func Wrap(err error, message string, code ...pkgConstants.ErrorCode) error {
 	if err == nil {
 		return nil

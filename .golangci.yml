@@ -1,0 +1,277 @@
+# golangci-lint v2 configuration file
+version: "2"
+
+# Run configuration
+run:
+  # Exit code when issues are found (2 = errors found)
+  issues-exit-code: 2
+  # Analyze test files as well
+  tests: true
+  # Allow multiple golangci-lint instances to run in parallel
+  allow-parallel-runners: true
+
+# Linter configuration
+linters:
+  enable:
+    # Checks for dangerous unicode character sequences
+    - bidichk
+    # Checks whether HTTP response body is closed successfully
+    - bodyclose
+    # Checks whether a function uses non-inherited context
+    - contextcheck
+    # Detects duplicate code blocks
+    - dupl
+    # Checks for two durations multiplied together
+    - durationcheck
+    # Checks that sentinel errors are prefixed with Err and error types end with Error
+    - errname
+    # Finds code that will cause problems with Go's error wrapping scheme
+    - errorlint
+    # Finds repeated strings that could be replaced by a constant
+    - goconst
+    # Provides diagnostics that check for bugs, performance and style issues
+    - gocritic
+    # Finds commonly misspelled English words in comments
+    - misspell
+    # Finds sending http request without context.Context
+    - noctx
+    # Finds code that shadows one of Go's predeclared identifiers
+    - predeclared
+    # Fast, configurable, extensible, flexible, and beautiful linter for Go
+    - revive
+    # Checks whether Err of rows is checked successfully
+    - rowserrcheck
+    # Checks that sql.Rows and sql.Stmt are closed
+    - sqlclosecheck
+    # Removes unnecessary type conversions
+    - unconvert
+    # Finds wasted assignment statements
+    - wastedassign
+    # Detects leading and trailing whitespace
+    - whitespace
+    # Checks that errors from external packages are wrapped
+    - wrapcheck
+
+  # Linter-specific settings
+  settings:
+    gocritic:
+      # Disable specific gocritic checks
+      disabled-checks:
+        # Allow defer after os.Exit (common pattern in main functions)
+        - exitAfterDefer
+
+    revive:
+      # Set default severity level for revive issues
+      severity: warning
+
+      # Revive rule configuration
+      rules:
+        # Check for improper usage of sync/atomic package
+        - name: atomic
+          disabled: false
+
+        # Disallow blank imports except for side-effects
+        - name: blank-imports
+          disabled: false
+
+        # Check for unnecessary boolean literal in expressions
+        - name: bool-literal-in-expr
+          disabled: false
+
+        # Disallow explicit calls to the garbage collector
+        - name: call-to-gc
+          disabled: false
+
+        # Check for constant expressions in if/switch conditions
+        - name: constant-logical-expr
+          disabled: false
+
+        # Check that context.Context is the first parameter
+        - name: context-as-argument
+          disabled: false
+
+        # Check context key types (should not use basic types)
+        - name: context-keys-type
+          disabled: false
+
+        # Check for common mistakes with defer statements
+        - name: defer
+          arguments:
+            - - call-chain
+              - loop
+              - method-call
+              - recover
+              - return
+          disabled: false
+
+        # Check for packages imported multiple times
+        - name: duplicated-imports
+          disabled: false
+
+        # Suggest early returns to reduce nesting
+        - name: early-return
+          disabled: false
+
+        # Check for empty code blocks
+        - name: empty-block
+          disabled: false
+
+        # Check error variable naming convention (should start with Err or err)
+        - name: error-naming
+          disabled: false
+
+        # Check that error is the last return value
+        - name: error-return
+          disabled: false
+
+        # Check error message formatting (lowercase, no punctuation)
+        - name: error-strings
+          disabled: false
+
+        # Suggest using fmt.Errorf with %w for error wrapping
+        - name: errorf
+          disabled: false
+
+        # Check that exported identifiers have comments
+        - name: exported
+          disabled: false
+
+        # Check that getter methods don't have Get prefix
+        - name: get-return
+          disabled: false
+
+        # Check for identical if-else branches
+        - name: identical-branches
+          disabled: false
+
+        # Suggest using ++ and -- operators
+        - name: increment-decrement
+          disabled: false
+
+        # Check error handling flow (reduce nesting)
+        - name: indent-error-flow
+          disabled: false
+
+        # Check that packages have documentation comments
+        - name: package-comments
+          disabled: false
+
+        # Check proper usage of range loops
+        - name: range
+          disabled: false
+
+        # Detect problematic range loop variable closures
+        - name: range-val-in-closure
+          disabled: false
+
+        # Check taking address of range loop variables
+        - name: range-val-address
+          disabled: false
+
+        # Check receiver naming consistency
+        - name: receiver-naming
+          disabled: false
+
+        # Check for redefinition of builtin identifiers
+        - name: redefines-builtin-id
+          disabled: false
+
+        # Check for string(int) conversions (likely a mistake)
+        - name: string-of-int
+          disabled: false
+
+        # Check time variable naming (should contain time/duration in name)
+        - name: time-naming
+          disabled: false
+
+        # Suggest short variable declaration (:=) where appropriate
+        - name: var-declaration
+          disabled: false
+
+        # Check naming of unexported identifiers
+        - name: unexported-naming
+          disabled: false
+
+        # Check that unexported types are not returned from exported functions
+        - name: unexported-return
+          disabled: false
+
+        # Check for unnecessary statements
+        - name: unnecessary-stmt
+          disabled: false
+
+        # Detect unreachable code
+        - name: unreachable-code
+          disabled: false
+
+        # Check for unused function parameters
+        - name: unused-parameter
+          disabled: false
+
+        # Check for useless break statements
+        - name: useless-break
+          disabled: false
+
+    staticcheck:
+      # Enable/disable specific staticcheck checks
+      checks:
+        # Enable all staticcheck rules
+        - all
+        # Disable SA9004: only the first constant in this group has an explicit type
+        - -SA9004
+
+  # Issue exclusion configuration
+  exclusions:
+    # How to handle generated files (lax = more lenient)
+    generated: lax
+
+    # Predefined issue exclusion presets
+    presets:
+      # Exclude common comment-related issues
+      - comments
+      # Exclude common false positive issues
+      - common-false-positives
+      # Exclude issues from legacy/deprecated linters
+      - legacy
+      # Exclude standard error handling patterns
+      - std-error-handling
+
+    # Exclude specific paths from linting
+    paths:
+      # Exclude tools directory
+      - tools$
+
+# Severity configuration
+severity:
+  # Default severity level for all issues
+  default: warning
+# Formatter configuration
+formatters:
+  enable:
+    # Standard Go formatter (checks code formatting)
+    - gofmt
+    # Formats imports (adds/removes/sorts import statements)
+    - goimports
+    # Shortens long lines by reformatting code
+    - golines
+
+  settings:
+    golines:
+      # Maximum line length before reformatting (characters)
+      max-len: 100
+      # Tab width for indentation (spaces)
+      tab-len: 4
+      # Also shorten long comments to fit max-len
+      shorten-comments: true
+      # Don't reformat struct tags (keep them on one line)
+      reformat-tags: false
+      # Place dots at end of line for method chains (Go convention)
+      chain-split-dots: false
+
+  # Exclude specific paths from formatting
+  exclusions:
+    # More lenient with generated files
+    generated: lax
+    paths:
+      # Don't format tools.go (build-tagged tool dependencies)
+      - tools$

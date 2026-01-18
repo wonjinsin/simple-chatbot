@@ -60,7 +60,13 @@ type StandardResponse struct {
 
 // WriteStandardJSON writes a standard JSON response with TrID
 // Accepts an optional custom code string. If not provided, uses HTTP status code.
-func WriteStandardJSON(w http.ResponseWriter, r *http.Request, httpStatus int, result any, customCode ...string) {
+func WriteStandardJSON(
+	w http.ResponseWriter,
+	r *http.Request,
+	httpStatus int,
+	result any,
+	customCode ...string,
+) {
 	// Get TrID from context
 	trID := ""
 	if ctx := r.Context(); ctx != nil {

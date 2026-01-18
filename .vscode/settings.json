@@ -1,0 +1,54 @@
+{
+	// gopls (Go Language Server) configuration
+	"gopls": {
+	  // Use tools tag when gopls builds as well
+	  // This prevents imports in tools.go from showing as errors
+	  "build.buildFlags": ["-tags=tools"]
+	},
+	
+	// Specify alternate tool paths
+	"go.alternateTools": {
+	  // Use project-local bin/golangci-lint
+	  // Uses project version instead of globally installed version
+	  "golangci-lint": "${workspaceFolder}/bin/golangci-lint"
+	},
+	
+	// Use golangci-lint v2 as the linting tool
+	// "golangci-lint-v2" is supported in VSCode Go extension v0.48.0+
+	// Uses v2's new flag format
+	"go.lintTool": "golangci-lint-v2",
+	
+	// Flags to pass when running golangci-lint
+	"go.lintFlags": [
+	  // Use project's .golangci.yml configuration file
+	  "--config=${workspaceFolder}/.golangci.yml",
+	  
+	  // --fix: Automatically fix issues that can be auto-fixed
+	  // This includes formatters (gofmt, golines, goimports)
+	  "--fix"
+	],
+	
+	// Run lint only on current file when saving
+	// "file" = current file only
+	// "package" = entire current package
+	// "workspace" = entire project
+	"go.lintOnSave": "file",
+	
+	// Settings applied only to Go files
+	"[go]": {
+	  // Disable automatic formatting on save
+	  // (Formatting is handled by golangci-lint --fix instead)
+	  "editor.formatOnSave": false,
+	  
+	  // Code actions to run automatically on save
+	  "editor.codeActionsOnSave": {
+		// Automatically organize import statements (add/remove/sort)
+		"source.organizeImports": "always",
+		
+		// Fix all auto-fixable issues
+		// Works with golangci-lint --fix
+		"source.fixAll": "always"
+	  }
+	}
+  }
+  
