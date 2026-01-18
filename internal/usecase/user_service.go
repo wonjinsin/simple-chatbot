@@ -18,7 +18,7 @@ func NewUserService(r repository.UserRepository) UserService {
 	return &userService{repo: r}
 }
 
-func (s *userService) CreateUser(ctx context.Context, name, email string) (*domain.User, error) {
+func (s *userService) CreateUser(_ context.Context, name, email string) (*domain.User, error) {
 	// Check if user with email already exists
 	existing, err := s.repo.FindByEmail(email)
 	if err != nil {
@@ -42,7 +42,7 @@ func (s *userService) CreateUser(ctx context.Context, name, email string) (*doma
 	return u, nil
 }
 
-func (s *userService) GetUser(ctx context.Context, id int) (*domain.User, error) {
+func (s *userService) GetUser(_ context.Context, id int) (*domain.User, error) {
 	u, err := s.repo.FindByID(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get user")
@@ -50,7 +50,7 @@ func (s *userService) GetUser(ctx context.Context, id int) (*domain.User, error)
 	return u, nil
 }
 
-func (s *userService) ListUsers(ctx context.Context, offset, limit int) (domain.Users, error) {
+func (s *userService) ListUsers(_ context.Context, offset, limit int) (domain.Users, error) {
 	if limit <= 0 {
 		limit = 50
 	}

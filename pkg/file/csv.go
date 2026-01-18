@@ -2,8 +2,10 @@ package file
 
 import (
 	"encoding/csv"
-	"fmt"
 	"os"
+
+	"github.com/wonjinsin/simple-chatbot/internal/constants"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 )
 
 // ReadCSVToMapArray reads a CSV file and converts it to an array of maps.
@@ -24,7 +26,7 @@ import (
 func ReadCSVToMapArray(filePath string) ([]map[string]string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open CSV file: %w", err)
+		return nil, errors.Wrap(err, "failed to open CSV file")
 	}
 	defer file.Close()
 
@@ -32,16 +34,16 @@ func ReadCSVToMapArray(filePath string) ([]map[string]string, error) {
 
 	records, err := reader.ReadAll()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read CSV file: %w", err)
+		return nil, errors.Wrap(err, "failed to read CSV file")
 	}
 
 	if len(records) == 0 {
-		return nil, fmt.Errorf("CSV file is empty")
+		return nil, errors.New(constants.InvalidParameter, "CSV file is empty", nil)
 	}
 
 	headers := records[0]
 	if len(headers) == 0 {
-		return nil, fmt.Errorf("CSV file has no columns")
+		return nil, errors.New(constants.InvalidParameter, "CSV file has no columns", nil)
 	}
 
 	result := make([]map[string]string, 0, len(records)-1)

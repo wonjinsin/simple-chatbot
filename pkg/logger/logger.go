@@ -18,7 +18,7 @@ func Initialize(env string) {
 	zerolog.TimeFieldFormat = "2006/01/02 15:04:05.000"
 
 	// Configure caller marshalling to include short file:line and function name
-	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+	zerolog.CallerMarshalFunc = func(_ uintptr, file string, line int) string {
 		// Prefer repo-relative path if possible (e.g.,
 		// "internal/handler/http/basic_chat_controller.go")
 		short := file

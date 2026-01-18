@@ -17,7 +17,7 @@ func NewInquiryService() InquiryService {
 }
 
 // EmbedInquiryOrigins embeds inquiry origins
-func (s *inquiryService) EmbedInquiryOrigins(ctx context.Context) error {
+func (s *inquiryService) EmbedInquiryOrigins(_ context.Context) error {
 	origins, err := file.ReadCSVToMapArray("mock_data/data_set.csv")
 	if err != nil {
 		return errors.Wrap(err, "failed to read inquiry origins", constants.InternalError)

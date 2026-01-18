@@ -3,12 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	_ "github.com/jackc/pgx/v5/stdlib"
-
 	"github.com/wonjinsin/simple-chatbot/internal/config"
 	"github.com/wonjinsin/simple-chatbot/internal/constants"
 	"github.com/wonjinsin/simple-chatbot/internal/domain"
@@ -16,6 +13,9 @@ import (
 	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent"
 	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/user"
 	"github.com/wonjinsin/simple-chatbot/pkg/errors"
+
+	// Import pgx driver for PostgreSQL database connectivity
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type userRepo struct {
@@ -27,12 +27,13 @@ func NewUserRepository(cfg *config.Config) (repository.UserRepository, error) {
 	// Open database connection
 	db, err := sql.Open("pgx", cfg.GetDatabaseURL())
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, errors.Wrap(err, "failed to connect to database")
 	}
 
 	// Test connection
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+	ctx := context.Background()
+	if err := db.PingContext(ctx); err != nil {
+		return nil, errors.Wrap(err, "failed to ping database")
 	}
 
 	// Create ent client
@@ -44,7 +45,10 @@ func NewUserRepository(cfg *config.Config) (repository.UserRepository, error) {
 
 // Close closes the database connection
 func (r *userRepo) Close() error {
-	return r.client.Close()
+	if err := r.client.Close(); err != nil {
+		return errors.Wrap(err, "failed to close database connection")
+	}
+	return nil
 }
 
 // Save creates or updates a user
@@ -63,7 +67,7 @@ func (r *userRepo) Save(u *domain.User) error {
 			SetEmail(email).
 			Save(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to update user: %w", err)
+			return errors.Wrap(err, "failed to update user")
 		}
 		return nil
 	}

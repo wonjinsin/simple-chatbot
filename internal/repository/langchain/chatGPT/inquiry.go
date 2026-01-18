@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudwego/eino-ext/components/embedding/openai"
 	"github.com/wonjinsin/simple-chatbot/internal/repository"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 )
 
 type inquiryRepo struct {
@@ -18,5 +19,9 @@ func NewInquiryRepo(embedder *openai.Embedder) repository.InquiryRepository {
 
 // EmbedStrings embeds strings and returns embeddings
 func (r *inquiryRepo) EmbedStrings(ctx context.Context, texts []string) ([][]float64, error) {
-	return r.embedder.EmbedStrings(ctx, texts)
+	embeddings, err := r.embedder.EmbedStrings(ctx, texts)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to embed strings")
+	}
+	return embeddings, nil
 }

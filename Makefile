@@ -5,8 +5,7 @@ BIN = $(BASE_PATH)/bin
 BINARY_NAME = bin/server
 MAIN = $(BASE_PATH)/cmd/server/main.go
 GOLINT = $(BIN)/golint
-GOBIN = $(shell go env GOPATH)/bin
-MOCK = $(GOBIN)/mockgen
+MOCK = $(BIN)/mockgen
 PKG_LIST = $(shell cd $(BASE_PATH) && cat pkg.list)
 
 
@@ -16,11 +15,12 @@ else
 	OS ?= $(shell uname | awk '{print tolower($0)}')
 endif
 
-.PHONY: tool
 tool:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-	go install go.uber.org/mock/mockgen@latest
+	@echo "Installing tools from go.mod..."
+	@GOBIN=$(BIN) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	@GOBIN=$(BIN) go install go.uber.org/mock/mockgen
+	@GOBIN=$(BIN) go install github.com/golangci/golines@latest
+	@echo "Tools installed successfully!"
 
 .PHONY: build
 build:
@@ -36,7 +36,7 @@ fmt:
 
 .PHONY: lint
 lint:
-	$(GOBIN)/golangci-lint run
+	$(BIN)/golangci-lint run
 
 .PHONY: test
 test: build-mocks
@@ -59,7 +59,7 @@ tidy:
 	go mod tidy
 
 .PHONY: vendor
-vendor: build-mocks
+vendor:
 	go mod vendor
 
 # Infrastructure commands

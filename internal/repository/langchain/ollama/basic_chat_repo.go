@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -21,64 +20,6 @@ import (
 	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 	"github.com/wonjinsin/simple-chatbot/pkg/logger"
 )
-
-// cleanMarkdownJSONParser is a custom parser that cleans markdown code blocks before parsing JSON
-type cleanMarkdownJSONParser[T any] struct {
-	baseParser schema.MessageParser[T]
-}
-
-// Parse cleans markdown code blocks from message content and then parses it
-func (p *cleanMarkdownJSONParser[T]) Parse(ctx context.Context, msg *schema.Message) (T, error) {
-	var result T
-	if msg == nil {
-		return result, nil
-	}
-
-	// Clean markdown code blocks from content
-	content := p.cleanMarkdown(msg.Content)
-
-	// Create a temporary message with cleaned content
-	cleanedMsg := &schema.Message{
-		Role:      msg.Role,
-		Content:   content,
-		ToolCalls: msg.ToolCalls,
-	}
-
-	// Use base parser to parse the cleaned message
-	return p.baseParser.Parse(ctx, cleanedMsg)
-}
-
-// cleanMarkdown removes markdown code blocks and extracts JSON
-func (p *cleanMarkdownJSONParser[T]) cleanMarkdown(content string) string {
-	// Remove markdown code blocks (```json ... ``` or ``` ... ```)
-	markdownCodeBlockRegex := regexp.MustCompile("(?s)```(?:json)?\\s*(.*?)\\s*```")
-	matches := markdownCodeBlockRegex.FindStringSubmatch(content)
-	if len(matches) > 1 {
-		// Extract JSON from code block
-		return strings.TrimSpace(matches[1])
-	}
-
-	// If no code block, try to find JSON object in the content
-	// Find the first { and match until the corresponding }
-	startIdx := strings.Index(content, "{")
-	if startIdx != -1 {
-		braceCount := 0
-		for i := startIdx; i < len(content); i++ {
-			switch content[i] {
-			case '{':
-				braceCount++
-			case '}':
-				braceCount--
-				if braceCount == 0 {
-					return strings.TrimSpace(content[startIdx : i+1])
-				}
-			}
-		}
-	}
-
-	// Return trimmed content if no JSON found
-	return strings.TrimSpace(content)
-}
 
 type basicChatRepo struct {
 	ollamaLLM model.ToolCallingChatModel
@@ -209,14 +150,14 @@ func (r *basicChatRepo) AskBasicParallelChat(ctx context.Context, _ string) (str
 		AppendLambda(jsonParserLambda)
 
 	lengthLambda := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (int, error) {
+		func(_ context.Context, kvs map[string]any) (int, error) {
 			w, _ := kvs["user"].(string)
 			return utf8.RuneCountInString(w), nil
 		},
 	)
 
 	upperLambda := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (string, error) {
+		func(_ context.Context, kvs map[string]any) (string, error) {
 			w, _ := kvs["user"].(string)
 			return strings.ToUpper(w), nil
 		},
@@ -250,20 +191,20 @@ func (r *basicChatRepo) AskBasicBranchChat(ctx context.Context, _ string) (strin
 	)
 
 	dog := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+		func(_ context.Context, kvs map[string]any) (map[string]any, error) {
 			kvs["role"] = "dog"
 			return kvs, nil
 		},
 	)
 
 	cat := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+		func(_ context.Context, kvs map[string]any) (map[string]any, error) {
 			kvs["role"] = "cat"
 			return kvs, nil
 		},
 	)
 
-	roleCond := func(ctx context.Context, kvs map[string]any) (string, error) {
+	roleCond := func(_ context.Context, kvs map[string]any) (string, error) {
 		if kvs["word"] == "a" {
 			return "dog", nil
 		}
@@ -355,7 +296,7 @@ func (r *basicChatRepo) AskWithTool(ctx context.Context, _ string) (string, erro
 }
 
 func (r *basicChatRepo) AskWithToolAndSummary(ctx context.Context, _ string) (string, error) {
-	echoFunc := func(ctx context.Context, input map[string]any) (map[string]any, error) {
+	echoFunc := func(_ context.Context, input map[string]any) (map[string]any, error) {
 		return map[string]any{"echo": input["text"]}, nil
 	}
 	echoTool, err := utils.InferTool(
@@ -417,14 +358,14 @@ func (r *basicChatRepo) AskWithToolAndSummary(ctx context.Context, _ string) (st
 
 func (r *basicChatRepo) AskWithGraph(ctx context.Context, _ string) (string, error) {
 	greeting := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+		func(_ context.Context, kvs map[string]any) (map[string]any, error) {
 			kvs["greeting"] = fmt.Sprintf("Hello, %s!", kvs["name"])
 			return kvs, nil
 		},
 	)
 
 	process := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (*schema.Message, error) {
+		func(_ context.Context, kvs map[string]any) (*schema.Message, error) {
 			return &schema.Message{
 				Role:    schema.Assistant,
 				Content: fmt.Sprintf("Processed: %s", kvs["greeting"]),
@@ -438,11 +379,21 @@ func (r *basicChatRepo) AskWithGraph(ctx context.Context, _ string) (string, err
 	)
 
 	g := compose.NewGraph[map[string]any, *schema.Message]()
-	g.AddLambdaNode(greetingNode, greeting)
-	g.AddLambdaNode(processNode, process)
-	g.AddEdge(compose.START, greetingNode)
-	g.AddEdge(greetingNode, processNode)
-	g.AddEdge(processNode, compose.END)
+	if err := g.AddLambdaNode(greetingNode, greeting); err != nil {
+		return "", errors.Wrap(err, "failed to add greeting node")
+	}
+	if err := g.AddLambdaNode(processNode, process); err != nil {
+		return "", errors.Wrap(err, "failed to add process node")
+	}
+	if err := g.AddEdge(compose.START, greetingNode); err != nil {
+		return "", errors.Wrap(err, "failed to add edge START->greeting")
+	}
+	if err := g.AddEdge(greetingNode, processNode); err != nil {
+		return "", errors.Wrap(err, "failed to add edge greeting->process")
+	}
+	if err := g.AddEdge(processNode, compose.END); err != nil {
+		return "", errors.Wrap(err, "failed to add edge process->END")
+	}
 
 	res, err := g.Compile(ctx)
 	if err != nil {
@@ -472,27 +423,27 @@ func (r *basicChatRepo) AskWithGraphWithBranch(ctx context.Context, _ string) (s
 		),
 	)
 
-	cond := func(ctx context.Context, kvs map[string]any) (string, error) {
+	cond := func(_ context.Context, kvs map[string]any) (string, error) {
 		emotion, _ := kvs["emotion"].(string)
 		return emotion, nil
 	}
 
 	positive := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+		func(_ context.Context, kvs map[string]any) (map[string]any, error) {
 			kvs["response"] = "The user is feeling positive."
 			return kvs, nil
 		},
 	)
 
 	negative := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+		func(_ context.Context, kvs map[string]any) (map[string]any, error) {
 			kvs["response"] = "The user is feeling negative."
 			return kvs, nil
 		},
 	)
 
 	neutral := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (map[string]any, error) {
+		func(_ context.Context, kvs map[string]any) (map[string]any, error) {
 			kvs["response"] = "The user is feeling neutral."
 			return kvs, nil
 		},
@@ -509,7 +460,7 @@ func (r *basicChatRepo) AskWithGraphWithBranch(ctx context.Context, _ string) (s
 	)
 
 	emotionParser := compose.InvokableLambda(
-		func(ctx context.Context, msg *schema.Message) (map[string]any, error) {
+		func(_ context.Context, msg *schema.Message) (map[string]any, error) {
 			emotion := strings.ToLower(strings.TrimSpace(msg.Content))
 			return map[string]any{
 				"emotion": emotion,
@@ -518,7 +469,7 @@ func (r *basicChatRepo) AskWithGraphWithBranch(ctx context.Context, _ string) (s
 	)
 
 	finalizer := compose.InvokableLambda(
-		func(ctx context.Context, kvs map[string]any) (*schema.Message, error) {
+		func(_ context.Context, kvs map[string]any) (*schema.Message, error) {
 			response, _ := kvs["response"].(string)
 			return &schema.Message{
 				Role:    schema.Assistant,
@@ -529,28 +480,58 @@ func (r *basicChatRepo) AskWithGraphWithBranch(ctx context.Context, _ string) (s
 
 	g := compose.NewGraph[map[string]any, *schema.Message]()
 
-	g.AddChatTemplateNode(nodeOfPrompt, template)
-	g.AddChatModelNode(nodeOfModel, r.ollamaLLM)
-	g.AddLambdaNode(nodeOfEmotion, emotionParser)
-	g.AddLambdaNode(nodeOfPositive, positive)
-	g.AddLambdaNode(nodeOfNegative, negative)
-	g.AddLambdaNode(nodeOfNeutral, neutral)
-	g.AddLambdaNode(nodeOfFinalizer, finalizer)
+	if err := g.AddChatTemplateNode(nodeOfPrompt, template); err != nil {
+		return "", errors.Wrap(err, "failed to add prompt node")
+	}
+	if err := g.AddChatModelNode(nodeOfModel, r.ollamaLLM); err != nil {
+		return "", errors.Wrap(err, "failed to add model node")
+	}
+	if err := g.AddLambdaNode(nodeOfEmotion, emotionParser); err != nil {
+		return "", errors.Wrap(err, "failed to add emotion parser node")
+	}
+	if err := g.AddLambdaNode(nodeOfPositive, positive); err != nil {
+		return "", errors.Wrap(err, "failed to add positive node")
+	}
+	if err := g.AddLambdaNode(nodeOfNegative, negative); err != nil {
+		return "", errors.Wrap(err, "failed to add negative node")
+	}
+	if err := g.AddLambdaNode(nodeOfNeutral, neutral); err != nil {
+		return "", errors.Wrap(err, "failed to add neutral node")
+	}
+	if err := g.AddLambdaNode(nodeOfFinalizer, finalizer); err != nil {
+		return "", errors.Wrap(err, "failed to add finalizer node")
+	}
 
-	g.AddEdge(compose.START, nodeOfPrompt)
-	g.AddEdge(nodeOfPrompt, nodeOfModel)
-	g.AddEdge(nodeOfModel, nodeOfEmotion)
+	if err := g.AddEdge(compose.START, nodeOfPrompt); err != nil {
+		return "", errors.Wrap(err, "failed to add edge START->prompt")
+	}
+	if err := g.AddEdge(nodeOfPrompt, nodeOfModel); err != nil {
+		return "", errors.Wrap(err, "failed to add edge prompt->model")
+	}
+	if err := g.AddEdge(nodeOfModel, nodeOfEmotion); err != nil {
+		return "", errors.Wrap(err, "failed to add edge model->emotion")
+	}
 
-	g.AddBranch(nodeOfEmotion, compose.NewGraphBranch(cond, map[string]bool{
+	if err := g.AddBranch(nodeOfEmotion, compose.NewGraphBranch(cond, map[string]bool{
 		"positive": true,
 		"negative": true,
 		"neutral":  true,
-	}))
+	})); err != nil {
+		return "", errors.Wrap(err, "failed to add branch from emotion node")
+	}
 
-	g.AddEdge(nodeOfPositive, nodeOfFinalizer)
-	g.AddEdge(nodeOfNegative, nodeOfFinalizer)
-	g.AddEdge(nodeOfNeutral, nodeOfFinalizer)
-	g.AddEdge(nodeOfFinalizer, compose.END)
+	if err := g.AddEdge(nodeOfPositive, nodeOfFinalizer); err != nil {
+		return "", errors.Wrap(err, "failed to add edge positive->finalizer")
+	}
+	if err := g.AddEdge(nodeOfNegative, nodeOfFinalizer); err != nil {
+		return "", errors.Wrap(err, "failed to add edge negative->finalizer")
+	}
+	if err := g.AddEdge(nodeOfNeutral, nodeOfFinalizer); err != nil {
+		return "", errors.Wrap(err, "failed to add edge neutral->finalizer")
+	}
+	if err := g.AddEdge(nodeOfFinalizer, compose.END); err != nil {
+		return "", errors.Wrap(err, "failed to add edge finalizer->END")
+	}
 
 	chain, err := g.Compile(ctx)
 	if err != nil {

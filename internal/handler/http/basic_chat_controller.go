@@ -38,7 +38,6 @@ func (c *BasicChatController) AskBasicChat(w http.ResponseWriter, r *http.Reques
 	answer, err := c.svc.AskBasicChat(ctx, req.Msg)
 	if err != nil {
 		logger.LogError(ctx, "internal error in ask", err)
-
 		utils.WriteStandardJSON(w, r, http.StatusInternalServerError, dto.ErrorResult{
 			Msg: err.Error(),
 		}, string(errors.GetCode(err)))
@@ -46,7 +45,6 @@ func (c *BasicChatController) AskBasicChat(w http.ResponseWriter, r *http.Reques
 	}
 
 	logger.LogInfo(ctx, "answer retrieved successfully")
-
 	utils.WriteStandardJSON(w, r, http.StatusOK, answer)
 }
 
@@ -72,6 +70,7 @@ func (c *BasicChatController) AskBasicPromptTemplateChat(w http.ResponseWriter, 
 		}, string(errors.GetCode(err)))
 		return
 	}
+
 	logger.LogInfo(ctx, "answer basic prompt template chat retrieved successfully")
 	utils.WriteStandardJSON(w, r, http.StatusOK, answer)
 }

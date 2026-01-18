@@ -220,6 +220,11 @@ linters:
         # Disable SA9004: only the first constant in this group has an explicit type
         - -SA9004
 
+    dupl:
+      # Minimum token count to consider as duplicate code (default: 150)
+      # Increasing this value will only flag longer duplications
+      threshold: 200
+
   # Issue exclusion configuration
   exclusions:
     # How to handle generated files (lax = more lenient)

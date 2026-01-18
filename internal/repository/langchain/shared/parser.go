@@ -7,6 +7,7 @@ import (
 
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 )
 
 type CleanMarkdownJSONParser[T any] struct {
@@ -40,7 +41,11 @@ func (p *CleanMarkdownJSONParser[T]) Parse(ctx context.Context, msg *schema.Mess
 	}
 
 	// Use base parser to parse the cleaned message
-	return p.baseParser.Parse(ctx, cleanedMsg)
+	parsed, err := p.baseParser.Parse(ctx, cleanedMsg)
+	if err != nil {
+		return result, errors.Wrap(err, "failed to parse message")
+	}
+	return parsed, nil
 }
 
 // cleanMarkdown removes markdown code blocks and extracts JSON

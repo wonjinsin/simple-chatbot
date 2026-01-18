@@ -3,10 +3,11 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"time"
 
-	"github.com/wonjinsin/simple-chatbot/pkg/constants"
+	"github.com/wonjinsin/simple-chatbot/internal/constants"
+	pkgConstants "github.com/wonjinsin/simple-chatbot/pkg/constants"
+	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 )
 
 // GenerateID generates a unique ID using timestamp and counter
@@ -23,7 +24,7 @@ func FormatID(timestamp int64, counter int64) string {
 
 	for x > 0 {
 		i--
-		buf[i] = constants.IDAlphabet[x%36]
+		buf[i] = pkgConstants.IDAlphabet[x%36]
 		x /= 36
 	}
 	return string(buf[i:])
@@ -32,12 +33,12 @@ func FormatID(timestamp int64, counter int64) string {
 // GenerateRandomID generates a cryptographically secure random ID
 func GenerateRandomID(length int) (string, error) {
 	if length <= 0 {
-		return "", fmt.Errorf("length must be positive")
+		return "", errors.New(constants.InvalidParameter, "length must be positive", nil)
 	}
 
 	bytes := make([]byte, length)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("failed to generate random bytes: %w", err)
+		return "", errors.Wrap(err, "failed to generate random bytes")
 	}
 
 	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
