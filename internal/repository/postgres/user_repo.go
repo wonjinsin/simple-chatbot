@@ -6,16 +6,12 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/wonjinsin/simple-chatbot/internal/config"
 	"github.com/wonjinsin/simple-chatbot/internal/constants"
 	"github.com/wonjinsin/simple-chatbot/internal/domain"
 	"github.com/wonjinsin/simple-chatbot/internal/repository"
 	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent"
 	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/ent/user"
 	"github.com/wonjinsin/simple-chatbot/pkg/errors"
-
-	// Import pgx driver for PostgreSQL database connectivity
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type userRepo struct {
@@ -23,24 +19,12 @@ type userRepo struct {
 }
 
 // NewUserRepository creates a new PostgreSQL-based user repository
-func NewUserRepository(cfg *config.Config) (repository.UserRepository, error) {
-	// Open database connection
-	db, err := sql.Open("pgx", cfg.GetDatabaseURL())
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to connect to database")
-	}
-
-	// Test connection
-	ctx := context.Background()
-	if err := db.PingContext(ctx); err != nil {
-		return nil, errors.Wrap(err, "failed to ping database")
-	}
-
+func NewUserRepository(db *sql.DB) repository.UserRepository {
 	// Create ent client
 	drv := entsql.OpenDB(dialect.Postgres, db)
 	client := ent.NewClient(ent.Driver(drv))
 
-	return &userRepo{client: client}, nil
+	return &userRepo{client: client}
 }
 
 // Close closes the database connection

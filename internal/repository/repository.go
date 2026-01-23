@@ -25,7 +25,14 @@ type BasicChatRepository interface {
 	AskWithGraphWithBranch(ctx context.Context, _ string) (string, error)
 }
 
-// InquiryRepository defines the interface for inquiry data access
-type InquiryRepository interface {
+// EmbeddingRepository defines the interface for text embedding operations
+type EmbeddingRepository interface {
+	// EmbedStrings converts text strings to embedding vectors using LLM
 	EmbedStrings(ctx context.Context, texts []string) ([][]float64, error)
+}
+
+// InquiryKnowledgeRepository defines the interface for inquiry knowledge database operations
+type InquiryKnowledgeRepository interface {
+	// BatchSaveInquiryKnowledge saves multiple inquiry knowledge entries to database
+	BatchSaveInquiryKnowledge(ctx context.Context, items domain.InquiryKnowledges) error
 }

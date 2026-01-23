@@ -87,6 +87,44 @@ graph TB
 - pgx 드라이버를 사용한 벡터 저장 구현
 - 배치 insert 최적화 (성능 향상)
 
+### 5.5. DB 연결 중앙화
+
+**파일:** `internal/database/postgres.go` (신규)
+
+- PostgreSQL DB 연결 생성 함수 추가
+- 커넥션 풀 설정 (MaxOpenConns, MaxIdleConns)
+- 모든 Repository에서 재사용
+
+**수정 파일:** `internal/repository/postgres/user_repo.go`, `internal/repository/postgres/inquiry_repo.go`
+
+- NewUserRepository, NewInquiryRepository 생성자 수정
+- cfg 대신 *sql.DB를 파라미터로 받도록 변경
+- DB 연결 로직 제거 (중앙에서 생성된 DB 재사용)
+
+### 5.6. Repository 책임 분리
+
+**인터페이스 분리:** `internal/repository/repository.go`
+
+- InquiryRepository → 2개로 분리:
+  - `EmbeddingRepository`: 텍스트 임베딩 (LLM)
+  - `InquiryKnowledgeRepository`: DB 저장 (PostgreSQL)
+
+**파일 이름 및 구조 변경:**
+
+- `internal/repository/langchain/chatGPT/inquiry.go` → `embedding_repo.go`
+  - `NewInquiryRepo` → `NewEmbeddingRepository`
+  - `EmbeddingRepository` 인터페이스 구현
+
+- `internal/repository/postgres/inquiry_repo.go` 수정
+  - embedder 필드 제거
+  - `NewInquiryRepository` → `NewInquiryKnowledgeRepository`
+  - `EmbedStrings` 메서드 제거
+  - `InquiryKnowledgeRepository` 인터페이스만 구현
+
+**책임 분리:**
+- LangChain Repository: LLM을 사용한 임베딩 생성
+- PostgreSQL Repository: DB CRUD 작업
+
 ### 6. UseCase 로직 구현
 
 **파일:** [`internal/usecase/inquiry.go`](internal/usecase/inquiry.go)

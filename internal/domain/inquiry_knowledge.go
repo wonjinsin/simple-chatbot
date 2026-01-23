@@ -87,5 +87,5 @@ func NewInquiryKnowledgeFromCSV(csvRow map[string]string) (*InquiryKnowledge, er
 	}, nil
 }
 
-// InquiryKnowledgeList is a collection of InquiryKnowledge
-type InquiryKnowledgeList []*InquiryKnowledge
+// InquiryKnowledges is a collection of InquiryKnowledge
+type InquiryKnowledges []*InquiryKnowledge

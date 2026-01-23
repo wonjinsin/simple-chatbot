@@ -305,10 +305,13 @@ Handler → UseCase → Repository → Domain
 5. **Custom Collection Types**:
 
    - Always use named slice types instead of inline slice declarations
-   - Define in domain model: `type Users []*User`
-   - Use the named type: `func GetUsers() (Users, error)`
-   - Never use inline: `func GetUsers() ([]*User, error)`
-   - Improves readability and allows future method additions
+   - Define in domain model with plural form: `type Users []*User`, `type InquiryKnowledges []*InquiryKnowledge`
+   - Use the named type in ALL contexts:
+     - Function returns: `func GetUsers() (Users, error)`
+     - Function parameters: `func SaveUsers(users Users) error`
+     - Repository interfaces: `BatchSave(ctx context.Context, items InquiryKnowledges) error`
+   - Never use inline slice declarations: `[]*User`, `[]*InquiryKnowledge`
+   - Benefits: Improves readability, allows future method additions, enforces consistency
 
 6. **HTTP Response Format**:
 
