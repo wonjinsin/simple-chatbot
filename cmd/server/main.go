@@ -14,6 +14,7 @@ import (
 	"github.com/wonjinsin/simple-chatbot/internal/config"
 	"github.com/wonjinsin/simple-chatbot/internal/database"
 	httpHandler "github.com/wonjinsin/simple-chatbot/internal/handler/http"
+	chatgptRepo "github.com/wonjinsin/simple-chatbot/internal/repository/langchain/chatGPT"
 	langchain "github.com/wonjinsin/simple-chatbot/internal/repository/langchain/ollama"
 	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres"
 	"github.com/wonjinsin/simple-chatbot/internal/usecase"
@@ -39,17 +40,29 @@ func main() {
 		log.Fatalf("failed to initialize LLM: %v", err)
 	}
 
-	// Initialize database connection
-	userRepo, err := postgres.NewUserRepository(cfg)
+	// Initialize ChatGPT Embedder
+	chatGPTEmbedder, err := database.NewChatGPTEmbedder(cfg.OpenAIAPIKey)
+	if err != nil {
+		log.Fatalf("failed to initialize ChatGPT embedder: %v", err)
+	}
+
+	// Initialize PostgreSQL database connection
+	db, err := database.NewPostgresDB(cfg)
 	if err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
+	defer db.Close()
+
+	// Initialize repositories
+	userRepo := postgres.NewUserRepository(db)
 	basicChatRepo := langchain.NewBasicChatRepo(ollamaLLM)
+	embeddingRepo := chatgptRepo.NewEmbeddingRepository(chatGPTEmbedder)
+	inquiryKnowledgeRepo := postgres.NewInquiryKnowledgeRepository(db)
 
 	// Wiring (Composition Root)
 	userSvc := usecase.NewUserService(userRepo)
 	basicChatSvc := usecase.NewBasicChatService(basicChatRepo)
-	inquirySvc := usecase.NewInquiryService()
+	inquirySvc := usecase.NewInquiryServiceImpl(embeddingRepo, inquiryKnowledgeRepo)
 
 	// Create chi router
 	router := httpHandler.NewRouter(userSvc, basicChatSvc, inquirySvc)

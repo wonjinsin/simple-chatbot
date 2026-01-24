@@ -10,14 +10,15 @@ import (
 
 // Config holds all application configuration
 type Config struct {
-	Port       string
-	Env        string
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBSSLMode  string
+	Port         string
+	Env          string
+	DBHost       string
+	DBPort       string
+	DBUser       string
+	DBPassword   string
+	DBName       string
+	DBSSLMode    string
+	OpenAIAPIKey string
 }
 
 // Load reads configuration from .env.local file and environment variables
@@ -27,14 +28,15 @@ func Load() *Config {
 	_ = godotenv.Load(".env.local")
 
 	cfg := &Config{
-		Port:       mustGetEnv("PORT"),
-		Env:        mustGetEnv("ENV"),
-		DBHost:     mustGetEnv("DB_HOST"),
-		DBPort:     mustGetEnv("DB_PORT"),
-		DBUser:     mustGetEnv("DB_USER"),
-		DBPassword: mustGetEnv("DB_PASSWORD"),
-		DBName:     mustGetEnv("DB_NAME"),
-		DBSSLMode:  getEnvOrDefault("DB_SSLMODE", "disable"),
+		Port:         mustGetEnv("PORT"),
+		Env:          mustGetEnv("ENV"),
+		DBHost:       mustGetEnv("DB_HOST"),
+		DBPort:       mustGetEnv("DB_PORT"),
+		DBUser:       mustGetEnv("DB_USER"),
+		DBPassword:   mustGetEnv("DB_PASSWORD"),
+		DBName:       mustGetEnv("DB_NAME"),
+		DBSSLMode:    getEnvOrDefault("DB_SSLMODE", "disable"),
+		OpenAIAPIKey: mustGetEnv("OPENAI_API_KEY"),
 	}
 
 	log.Printf("Configuration loaded: ENV=%s, PORT=%s, DB=%s@%s:%s/%s",

@@ -122,6 +122,7 @@ graph TB
   - `InquiryKnowledgeRepository` 인터페이스만 구현
 
 **책임 분리:**
+
 - LangChain Repository: LLM을 사용한 임베딩 생성
 - PostgreSQL Repository: DB CRUD 작업
 
