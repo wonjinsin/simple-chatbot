@@ -21,5 +21,6 @@ type BasicChatService interface {
 
 // InquiryService defines the interface for inquiry business logic
 type InquiryService interface {
+	Ask(ctx context.Context, msg string) (*domain.InquirySimilarityResult, error)
 	EmbedInquiryOrigins(ctx context.Context) error
 }

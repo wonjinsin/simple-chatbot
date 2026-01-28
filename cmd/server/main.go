@@ -53,11 +53,15 @@ func main() {
 	}
 	defer db.Close()
 
+	// Initialize EntGo client (shared across all repositories)
+	entClient := database.NewEntClient(db, cfg)
+	defer entClient.Close()
+
 	// Initialize repositories
-	userRepo := postgres.NewUserRepository(db)
+	userRepo := postgres.NewUserRepository(entClient)
 	basicChatRepo := langchain.NewBasicChatRepo(ollamaLLM)
 	embeddingRepo := chatgptRepo.NewEmbeddingRepository(chatGPTEmbedder)
-	inquiryKnowledgeRepo := postgres.NewInquiryKnowledgeRepository(db)
+	inquiryKnowledgeRepo := postgres.NewInquiryKnowledgeRepository(entClient)
 
 	// Wiring (Composition Root)
 	userSvc := usecase.NewUserService(userRepo)

@@ -58,34 +58,63 @@ func NewInquiryKnowledge(
 }
 
 // NewInquiryKnowledgeFromCSV creates InquiryKnowledge from CSV row data
-func NewInquiryKnowledgeFromCSV(csvRow map[string]string) (*InquiryKnowledge, error) {
-	instruction := csvRow["instruction"]
-	response := csvRow["response"]
-	category := csvRow["category"]
-	intent := csvRow["intent"]
-	flags := csvRow["flags"]
+func NewInquiryKnowledgeFromCSVs(csvRows []map[string]string) (InquiryKnowledges, error) {
+	knowledgeItems := make(InquiryKnowledges, 0, len(csvRows))
+	for _, csvRow := range csvRows {
+		instruction := csvRow["instruction"]
+		response := csvRow["response"]
+		category := csvRow["category"]
+		intent := csvRow["intent"]
+		flags := csvRow["flags"]
 
-	// Validate required fields
-	instruction = strings.TrimSpace(instruction)
-	if utils.IsEmptyOrWhitespace(instruction) {
-		return nil, errors.New(constants.InvalidParameter, "instruction cannot be empty", nil)
+		// Validate required fields
+		instruction = strings.TrimSpace(instruction)
+		if utils.IsEmptyOrWhitespace(instruction) {
+			return nil, errors.New(constants.InvalidParameter, "instruction cannot be empty", nil)
+		}
+
+		response = strings.TrimSpace(response)
+		if utils.IsEmptyOrWhitespace(response) {
+			return nil, errors.New(constants.InvalidParameter, "response cannot be empty", nil)
+		}
+
+		knowledgeItems = append(knowledgeItems, &InquiryKnowledge{
+			Instruction: instruction,
+			Response:    response,
+			Category:    strings.TrimSpace(category),
+			Intent:      strings.TrimSpace(intent),
+			Flags:       strings.TrimSpace(flags),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		})
 	}
 
-	response = strings.TrimSpace(response)
-	if utils.IsEmptyOrWhitespace(response) {
-		return nil, errors.New(constants.InvalidParameter, "response cannot be empty", nil)
-	}
-
-	return &InquiryKnowledge{
-		Instruction: instruction,
-		Response:    response,
-		Category:    strings.TrimSpace(category),
-		Intent:      strings.TrimSpace(intent),
-		Flags:       strings.TrimSpace(flags),
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}, nil
+	return knowledgeItems, nil
 }
 
 // InquiryKnowledges is a collection of InquiryKnowledge
 type InquiryKnowledges []*InquiryKnowledge
+
+// Instructions returns the instructions of the inquiry knowledge
+func (is InquiryKnowledges) Instructions() []string {
+	instructions := make([]string, len(is))
+	for i, item := range is {
+		instructions[i] = item.Instruction
+	}
+	return instructions
+}
+
+func (is InquiryKnowledges) SetEmbeddings(embeddings [][]float64) {
+	for i, item := range is {
+		item.InstructionEmbedding = embeddings[i]
+	}
+}
+
+// InquirySimilarityResult represents an inquiry knowledge entry with its similarity score
+type InquirySimilarityResult struct {
+	Knowledge       *InquiryKnowledge
+	SimilarityScore float64 // Cosine similarity score (0.0 to 1.0, higher is more similar)
+}
+
+// InquirySimilarityResults is a collection of InquirySimilarityResult
+type InquirySimilarityResults []*InquirySimilarityResult

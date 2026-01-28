@@ -38,6 +38,10 @@ fmt:
 lint:
 	$(BIN)/golangci-lint run
 
+.PHONY: lint-fmt
+lint-fmt:
+	$(BIN)/golangci-lint fmt
+
 .PHONY: test
 test: build-mocks
 	go test -v -cover ./...

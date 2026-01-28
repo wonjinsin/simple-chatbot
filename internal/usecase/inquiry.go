@@ -3,18 +3,20 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"time"
+	"slices"
+	"strings"
 
 	"github.com/wonjinsin/simple-chatbot/internal/constants"
 	"github.com/wonjinsin/simple-chatbot/internal/domain"
 	"github.com/wonjinsin/simple-chatbot/internal/repository"
 	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 	"github.com/wonjinsin/simple-chatbot/pkg/file"
-	"github.com/wonjinsin/simple-chatbot/pkg/logger"
+	"github.com/wonjinsin/simple-chatbot/pkg/utils"
 )
 
 const (
-	batchSize = 50 // Batch size for embedding API calls
+	batchSize       = 50 // Batch size for embedding API calls
+	similarityLimit = 3  // Number of similar entries to retrieve
 )
 
 type InquiryServiceImpl struct {
@@ -40,88 +42,88 @@ func (s *InquiryServiceImpl) EmbedInquiryOrigins(ctx context.Context) error {
 		return errors.Wrap(err, "failed to read inquiry origins", constants.InternalError)
 	}
 
-	logger.LogInfo(ctx, fmt.Sprintf("read %d rows from CSV", len(csvRows)))
-
 	// Step 2: Convert CSV rows to domain objects (without embeddings)
-	knowledgeItems := make(domain.InquiryKnowledges, 0, len(csvRows))
-	for _, row := range csvRows {
-		item, err := domain.NewInquiryKnowledgeFromCSV(row)
-		if err != nil {
-			// Skip invalid rows
-			fmt.Printf("Skipping invalid row: %v\n", err)
-			continue
-		}
-		knowledgeItems = append(knowledgeItems, item)
+	knowledgeItems, err := domain.NewInquiryKnowledgeFromCSVs(csvRows)
+	if err != nil {
+		return errors.Wrap(
+			err,
+			"failed to convert CSV rows to domain objects",
+			constants.InternalError,
+		)
 	}
 
-	fmt.Printf("Converted %d valid items from CSV\n", len(knowledgeItems))
-
 	// Step 3: Process in batches
-	totalBatches := (len(knowledgeItems) + batchSize - 1) / batchSize
-	for i := 0; i < len(knowledgeItems); i += batchSize {
-		end := min(i+batchSize, len(knowledgeItems))
+	i := 0
+	for batch := range slices.Chunk(knowledgeItems, batchSize) {
+		instructions := batch.Instructions()
 
-		batch := knowledgeItems[i:end]
-		batchNum := (i / batchSize) + 1
-
-		fmt.Printf("Processing batch %d/%d (%d items)\n", batchNum, totalBatches, len(batch))
-
-		if err := s.processBatch(ctx, batch); err != nil {
+		embeddings, err := s.embeddingRepo.EmbedStrings(ctx, instructions)
+		if err != nil {
 			return errors.Wrap(
 				err,
-				fmt.Sprintf("failed to process batch %d", batchNum),
+				fmt.Sprintf("failed to generate embeddings for batch %d", i),
+				constants.InternalError,
+			)
+		}
+		batch.SetEmbeddings(embeddings)
+
+		if err := s.knowledgeRepo.BatchSaveInquiryKnowledge(ctx, batch); err != nil {
+			return errors.Wrap(
+				err,
+				fmt.Sprintf("failed to save inquiry knowledge for batch %d", i),
 				constants.InternalError,
 			)
 		}
 
-		fmt.Printf("Batch %d/%d completed successfully\n", batchNum, totalBatches)
+		i++
 	}
 
-	fmt.Printf("All %d items embedded and saved successfully\n", len(knowledgeItems))
 	return nil
 }
 
-// processBatch embeds and saves a batch of inquiry knowledge items
-func (s *InquiryServiceImpl) processBatch(
+// Ask answers a user question by finding similar inquiry knowledge using embedding similarity
+func (s *InquiryServiceImpl) Ask(
 	ctx context.Context,
-	batch domain.InquiryKnowledges,
-) error {
-	// Extract instructions for embedding
-	instructions := make([]string, len(batch))
-	for i, item := range batch {
-		instructions[i] = item.Instruction
-	}
-
-	// Generate embeddings
-	embeddings, err := s.embeddingRepo.EmbedStrings(ctx, instructions)
-	if err != nil {
-		return errors.Wrap(err, "failed to generate embeddings")
-	}
-
-	if len(embeddings) != len(batch) {
-		return errors.New(
-			constants.InternalError,
-			fmt.Sprintf(
-				"embedding count mismatch: expected %d, got %d",
-				len(batch),
-				len(embeddings),
-			),
+	msg string,
+) (*domain.InquirySimilarityResult, error) {
+	// Step 1: Validate input message
+	msg = strings.TrimSpace(msg)
+	if utils.IsEmptyOrWhitespace(msg) {
+		return nil, errors.New(
+			constants.InvalidParameter,
+			"question cannot be empty",
 			nil,
 		)
 	}
 
-	// Attach embeddings to items
-	now := time.Now()
-	for i, item := range batch {
-		item.InstructionEmbedding = embeddings[i]
-		item.CreatedAt = now
-		item.UpdatedAt = now
+	// Step 2: Generate embedding for the user's question
+	embeddings, err := s.embeddingRepo.EmbedStrings(ctx, []string{msg})
+	if err != nil {
+		return nil, errors.Wrap(
+			err,
+			"failed to generate embedding for question",
+			constants.InternalError,
+		)
 	}
 
-	// Save to database
-	if err := s.knowledgeRepo.BatchSaveInquiryKnowledge(ctx, batch); err != nil {
-		return errors.Wrap(err, "failed to save inquiry knowledge")
+	if len(embeddings) == 0 || len(embeddings[0]) == 0 {
+		return nil, errors.New(
+			constants.InternalError,
+			"embedding generation returned empty result",
+			nil,
+		)
 	}
 
-	return nil
+	// Step 3: Find similar inquiry knowledge entries with similarity scores
+	similarEntries, err := s.knowledgeRepo.FindSimilar(ctx, embeddings[0], similarityLimit)
+	if err != nil {
+		return nil, errors.Wrap(
+			err,
+			"failed to find similar inquiry knowledge",
+			constants.InternalError,
+		)
+	}
+
+	// Step 4: Return the most similar entry with its similarity score
+	return similarEntries[0], nil
 }

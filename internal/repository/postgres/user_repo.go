@@ -2,10 +2,7 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 
-	"entgo.io/ent/dialect"
-	entsql "entgo.io/ent/dialect/sql"
 	"github.com/wonjinsin/simple-chatbot/internal/constants"
 	"github.com/wonjinsin/simple-chatbot/internal/domain"
 	"github.com/wonjinsin/simple-chatbot/internal/repository"
@@ -19,20 +16,8 @@ type userRepo struct {
 }
 
 // NewUserRepository creates a new PostgreSQL-based user repository
-func NewUserRepository(db *sql.DB) repository.UserRepository {
-	// Create ent client
-	drv := entsql.OpenDB(dialect.Postgres, db)
-	client := ent.NewClient(ent.Driver(drv))
-
+func NewUserRepository(client *ent.Client) repository.UserRepository {
 	return &userRepo{client: client}
-}
-
-// Close closes the database connection
-func (r *userRepo) Close() error {
-	if err := r.client.Close(); err != nil {
-		return errors.Wrap(err, "failed to close database connection")
-	}
-	return nil
 }
 
 // Save creates or updates a user

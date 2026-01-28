@@ -27,6 +27,7 @@ func (c *InquiryController) EmbedInquiryOrigins(w http.ResponseWriter, r *http.R
 
 	err := c.svc.EmbedInquiryOrigins(ctx)
 	if err != nil {
+		logger.LogError(ctx, "EmbedInquiryOrigins failed", err)
 		// Extract error code and determine HTTP status
 		code := errors.GetCode(err)
 

@@ -18,3 +18,9 @@ go.work
 
 # binary when build
 bin/
+
+# data directory for docker
+data/
+
+# local env file
+.env.local

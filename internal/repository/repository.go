@@ -35,4 +35,11 @@ type EmbeddingRepository interface {
 type InquiryKnowledgeRepository interface {
 	// BatchSaveInquiryKnowledge saves multiple inquiry knowledge entries to database
 	BatchSaveInquiryKnowledge(ctx context.Context, items domain.InquiryKnowledges) error
+	// FindSimilar finds inquiry knowledge entries similar to the given embedding vector with
+	// similarity scores
+	FindSimilar(
+		ctx context.Context,
+		embedding []float64,
+		limit int,
+	) (domain.InquirySimilarityResults, error)
 }
