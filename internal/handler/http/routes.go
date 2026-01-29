@@ -41,6 +41,7 @@ func NewRouter(
 
 	// Inquiry routes
 	r.Route("/inquiry", func(r chi.Router) {
+		r.Post("/ask", inquiryCtrl.Ask)
 		r.Post("/embed/origins", inquiryCtrl.EmbedInquiryOrigins)
 	})
 
