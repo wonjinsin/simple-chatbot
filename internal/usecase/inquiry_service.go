@@ -97,7 +97,7 @@ func (s *InquiryServiceImpl) Ask(
 	}
 
 	// Step 2: Generate embedding for the user's question
-	embeddings, err := s.embeddingRepo.EmbedStrings(ctx, []string{msg})
+	embedding, err := s.embeddingRepo.EmbedString(ctx, msg)
 	if err != nil {
 		return nil, errors.Wrap(
 			err,
@@ -106,7 +106,7 @@ func (s *InquiryServiceImpl) Ask(
 		)
 	}
 
-	if len(embeddings) == 0 || len(embeddings[0]) == 0 {
+	if embedding.IsEmpty() {
 		return nil, errors.New(
 			constants.InternalError,
 			"embedding generation returned empty result",
@@ -115,11 +115,11 @@ func (s *InquiryServiceImpl) Ask(
 	}
 
 	// Step 3: Find similar inquiry knowledge entries with similarity scores
-	similarEntries, err := s.knowledgeRepo.FindSimilar(ctx, embeddings[0], similarityLimit)
+	similarEntries, err := s.knowledgeRepo.FindSimilars(ctx, embedding, similarityLimit)
 	if err != nil {
 		return nil, errors.Wrap(
 			err,
-			"failed to find similar inquiry knowledge",
+			"failed to find similars inquiry knowledge",
 			constants.InternalError,
 		)
 	}

@@ -13,7 +13,7 @@ import (
 type InquiryKnowledge struct {
 	ID                   int
 	Instruction          string
-	InstructionEmbedding []float64
+	InstructionEmbedding Embedding
 	Response             string
 	Category             string
 	Intent               string
@@ -25,7 +25,7 @@ type InquiryKnowledge struct {
 // NewInquiryKnowledge creates a new InquiryKnowledge instance with validation
 func NewInquiryKnowledge(
 	instruction, response, category, intent, flags string,
-	embedding []float64,
+	embedding Embedding,
 	now time.Time,
 ) (*InquiryKnowledge, error) {
 	// Normalize and validate instruction
@@ -104,7 +104,7 @@ func (is InquiryKnowledges) Instructions() []string {
 	return instructions
 }
 
-func (is InquiryKnowledges) SetEmbeddings(embeddings [][]float64) {
+func (is InquiryKnowledges) SetEmbeddings(embeddings Embeddings) {
 	for i, item := range is {
 		item.InstructionEmbedding = embeddings[i]
 	}

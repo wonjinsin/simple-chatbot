@@ -95,21 +95,13 @@ func (r *inquiryKnowledgeRepo) BatchSaveInquiryKnowledge(
 	return nil
 }
 
-// FindSimilar finds inquiry knowledge entries similar to the given embedding vector with similarity
+// FindSimilars finds inquiry knowledge entries similar to the given embedding vector with similarity
 // scores
-func (r *inquiryKnowledgeRepo) FindSimilar(
+func (r *inquiryKnowledgeRepo) FindSimilars(
 	ctx context.Context,
-	embedding []float64,
+	embedding domain.Embedding,
 	limit int,
 ) (domain.InquirySimilarityResults, error) {
-	if len(embedding) == 0 {
-		return nil, errors.New(
-			constants.InvalidParameter,
-			"embedding vector cannot be empty",
-			nil,
-		)
-	}
-
 	if limit <= 0 {
 		return nil, errors.New(
 			constants.InvalidParameter,
