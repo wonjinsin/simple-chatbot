@@ -10,8 +10,6 @@ import (
 
 // NewRouter creates and configures a new chi router
 func NewRouter(
-	userSvc usecase.UserService,
-	basicChatSvc usecase.BasicChatService,
 	inquirySvc usecase.InquiryService,
 ) *chi.Mux {
 	r := chi.NewRouter()
@@ -25,30 +23,15 @@ func NewRouter(
 
 	// Controllers
 	healthCtrl := NewHealthController()
-	userCtrl := NewUserController(userSvc)
-	basicChatCtrl := NewBasicChatController(basicChatSvc)
 	inquiryCtrl := NewInquiryController(inquirySvc)
 
 	// Routes
 	r.Get("/healthz", healthCtrl.Check)
 
-	// User routes
-	r.Route("/users", func(r chi.Router) {
-		r.Post("/", userCtrl.CreateUser)
-		r.Get("/", userCtrl.ListUsers)
-		r.Get("/{id}", userCtrl.GetUser)
-	})
-
 	// Inquiry routes
 	r.Route("/inquiry", func(r chi.Router) {
 		r.Post("/ask", inquiryCtrl.Ask)
 		r.Post("/embed/origins", inquiryCtrl.EmbedInquiryOrigins)
-	})
-
-	// Basic chat routes
-	r.Route("/basic-chat", func(r chi.Router) {
-		r.Post("/", basicChatCtrl.AskBasicChat)
-		r.Post("/prompt-template", basicChatCtrl.AskBasicPromptTemplateChat)
 	})
 
 	return r

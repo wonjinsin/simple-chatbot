@@ -21,18 +21,6 @@ func (f InquiryKnowledgeFunc) Mutate(ctx context.Context, m dao.Mutation) (dao.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *dao.InquiryKnowledgeMutation", m)
 }
 
-// The UserFunc type is an adapter to allow the use of ordinary
-// function as User mutator.
-type UserFunc func(context.Context, *dao.UserMutation) (dao.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f UserFunc) Mutate(ctx context.Context, m dao.Mutation) (dao.Value, error) {
-	if mv, ok := m.(*dao.UserMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *dao.UserMutation", m)
-}
-
 // Condition is a hook condition function.
 type Condition func(context.Context, dao.Mutation) bool
 

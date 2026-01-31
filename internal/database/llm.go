@@ -6,6 +6,7 @@ import (
 
 	"github.com/cloudwego/eino-ext/components/embedding/openai"
 	"github.com/cloudwego/eino-ext/components/model/ollama"
+	openaimodel "github.com/cloudwego/eino-ext/components/model/openai"
 	"github.com/wonjinsin/simple-chatbot/pkg/errors"
 )
 
@@ -21,6 +22,19 @@ func NewOllamaLLM() (*ollama.ChatModel, error) {
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create ollama chat model")
+	}
+	return model, nil
+}
+
+func NewChatGPTLLM(k string) (*openaimodel.ChatModel, error) {
+	ctx := context.Background()
+	model, err := openaimodel.NewChatModel(ctx, &openaimodel.ChatModelConfig{
+		APIKey:  k,
+		Model:   "gpt-4o-mini",
+		Timeout: 30 * time.Second,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create openai chat model")
 	}
 	return model, nil
 }

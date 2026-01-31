@@ -20,17 +20,20 @@ const (
 )
 
 type InquiryServiceImpl struct {
-	embeddingRepo repository.EmbeddingRepository
-	knowledgeRepo repository.InquiryKnowledgeRepository
+	embeddingRepo    repository.EmbeddingRepository
+	knowledgeRepo    repository.InquiryKnowledgeRepository
+	answerRefineRepo repository.AnswerRefineRepository
 }
 
 func NewInquiryServiceImpl(
 	embeddingRepo repository.EmbeddingRepository,
 	knowledgeRepo repository.InquiryKnowledgeRepository,
+	answerRefineRepo repository.AnswerRefineRepository,
 ) *InquiryServiceImpl {
 	return &InquiryServiceImpl{
-		embeddingRepo: embeddingRepo,
-		knowledgeRepo: knowledgeRepo,
+		embeddingRepo:    embeddingRepo,
+		knowledgeRepo:    knowledgeRepo,
+		answerRefineRepo: answerRefineRepo,
 	}
 }
 
@@ -81,15 +84,15 @@ func (s *InquiryServiceImpl) EmbedInquiryOrigins(ctx context.Context) error {
 	return nil
 }
 
-// Ask answers a user question by finding similar inquiry knowledge using embedding similarity
+// Ask answers a user question by finding similar inquiry knowledge and refining the answer
 func (s *InquiryServiceImpl) Ask(
 	ctx context.Context,
 	msg string,
-) (*domain.InquirySimilarityResult, error) {
+) (string, error) {
 	// Step 1: Validate input message
 	msg = strings.TrimSpace(msg)
 	if utils.IsEmptyOrWhitespace(msg) {
-		return nil, errors.New(
+		return "", errors.New(
 			constants.InvalidParameter,
 			"question cannot be empty",
 			nil,
@@ -99,7 +102,7 @@ func (s *InquiryServiceImpl) Ask(
 	// Step 2: Generate embedding for the user's question
 	embedding, err := s.embeddingRepo.EmbedString(ctx, msg)
 	if err != nil {
-		return nil, errors.Wrap(
+		return "", errors.Wrap(
 			err,
 			"failed to generate embedding for question",
 			constants.InternalError,
@@ -107,7 +110,7 @@ func (s *InquiryServiceImpl) Ask(
 	}
 
 	if embedding.IsEmpty() {
-		return nil, errors.New(
+		return "", errors.New(
 			constants.InternalError,
 			"embedding generation returned empty result",
 			nil,
@@ -117,13 +120,30 @@ func (s *InquiryServiceImpl) Ask(
 	// Step 3: Find similar inquiry knowledge entries with similarity scores
 	similarEntries, err := s.knowledgeRepo.FindSimilars(ctx, embedding, similarityLimit)
 	if err != nil {
-		return nil, errors.Wrap(
+		return "", errors.Wrap(
 			err,
-			"failed to find similars inquiry knowledge",
+			"failed to find similar inquiry knowledge",
 			constants.InternalError,
 		)
 	}
 
-	// Step 4: Return the most similar entry with its similarity score
-	return similarEntries[0], nil
+	// Step 4: Build context from similar entries
+	var contextBuilder strings.Builder
+	for _, entry := range similarEntries {
+		contextBuilder.WriteString(fmt.Sprintf("Question: %s\n", entry.Knowledge.Instruction))
+		contextBuilder.WriteString(fmt.Sprintf("Answer: %s\n", entry.Knowledge.Response))
+		contextBuilder.WriteString(fmt.Sprintf("Similarity: %.4f\n\n", entry.SimilarityScore))
+	}
+
+	// Step 5: Refine answer using LLM with context
+	refinedAnswer, err := s.answerRefineRepo.RefineAnswer(ctx, contextBuilder.String())
+	if err != nil {
+		return "", errors.Wrap(
+			err,
+			"failed to refine answer",
+			constants.InternalError,
+		)
+	}
+
+	return refinedAnswer, nil
 }

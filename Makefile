@@ -88,6 +88,10 @@ migrate-down:
 migrate-version:
 	go run cmd/migrate/main.go version
 
+.PHONY: ent-generate
+ent-generate:
+	go run -mod=mod entgo.io/ent/cmd/ent generate ./internal/repository/postgres/dao/schema
+
 .PHONY: start
 start: build 
 	@$(BINARY_NAME)

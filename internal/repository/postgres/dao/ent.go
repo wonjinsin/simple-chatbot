@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/inquiryknowledge"
-	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/user"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -75,7 +74,6 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			inquiryknowledge.Table: inquiryknowledge.ValidColumn,
-			user.Table:             user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

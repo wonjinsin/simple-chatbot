@@ -7,7 +7,6 @@ import (
 
 	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/inquiryknowledge"
 	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/schema"
-	"github.com/wonjinsin/simple-chatbot/internal/repository/postgres/dao/user"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -34,18 +33,4 @@ func init() {
 	inquiryknowledge.DefaultUpdatedAt = inquiryknowledgeDescUpdatedAt.Default.(func() time.Time)
 	// inquiryknowledge.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	inquiryknowledge.UpdateDefaultUpdatedAt = inquiryknowledgeDescUpdatedAt.UpdateDefault.(func() time.Time)
-	userFields := schema.User{}.Fields()
-	_ = userFields
-	// userDescName is the schema descriptor for name field.
-	userDescName := userFields[1].Descriptor()
-	// user.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	user.NameValidator = userDescName.Validators[0].(func(string) error)
-	// userDescEmail is the schema descriptor for email field.
-	userDescEmail := userFields[2].Descriptor()
-	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
-	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[3].Descriptor()
-	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
-	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 }

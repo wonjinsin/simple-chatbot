@@ -42,7 +42,7 @@ func (c *InquiryController) EmbedInquiryOrigins(w http.ResponseWriter, r *http.R
 	utils.WriteStandardJSON(w, r, http.StatusCreated, "success")
 }
 
-// Ask handles inquiry request and returns the most similar domain
+// Ask handles inquiry request and returns the refined answer
 func (c *InquiryController) Ask(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger.LogInfo(ctx, "Ask request received")
@@ -57,8 +57,8 @@ func (c *InquiryController) Ask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Step 2: Call service to find the most similar inquiry knowledge
-	result, err := c.svc.Ask(ctx, req.Msg)
+	// Step 2: Call service to get refined answer
+	answer, err := c.svc.Ask(ctx, req.Msg)
 	if err != nil {
 		logger.LogError(ctx, "Ask failed", err)
 		// Extract error code and determine HTTP status
@@ -70,8 +70,10 @@ func (c *InquiryController) Ask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Step 3: Convert domain to DTO
-	response := dto.ToAskResponse(result)
+	// Step 3: Return the refined answer
+	response := map[string]string{
+		"answer": answer,
+	}
 
 	logger.LogInfo(ctx, "Ask success response received")
 	utils.WriteStandardJSON(w, r, http.StatusOK, response)
